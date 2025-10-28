@@ -1,0 +1,137 @@
+erDiagram
+    USER {
+        bigint user_id PK "IDENTITY(1,1)"
+        varchar handle UK "用户名/句柄"
+        varchar email UK
+        varchar password_hash
+        varchar name "真实姓名"
+        int rating "当前Rating"
+        int max_rating "最高Rating"
+        varchar user_rank "当前等级"
+        varchar max_rank "最高等级"
+        varchar country "国家"
+        varchar city "城市"
+        varchar organization "组织/学校"
+        varchar avatar "头像URL"
+        datetime2 registration_time "GETDATE()"
+        datetime2 last_online_time "GETDATE()"
+        int contribution "贡献值"
+        bit is_admin "是否是管理员"
+        bit is_active "是否活跃"
+    }
+
+    CONTEST {
+        bigint contest_id PK "IDENTITY(1,1)"
+        varchar name "比赛名称"
+        varchar type "CF|IOI|ICPC"
+        varchar phase "BEFORE|CODING|PENDING_SYSTEM_TEST|SYSTEM_TEST|FINISHED"
+        bit frozen "是否封榜"
+        datetime2 start_time "开始时间"
+        int duration_seconds "持续时间(秒)"
+        varchar website_url "网站URL"
+        text description "描述"
+        int difficulty "难度评级"
+        varchar kind "种类"
+        varchar icpc_region "ICPC区域"
+        varchar country "国家"
+        varchar city "城市"
+        varchar season "赛季"
+        bigint created_by FK "创建者ID"
+    }
+
+    PROBLEM {
+        varchar problem_id PK "题目ID"
+        bigint contest_id FK "所属比赛编号"
+        varchar problem_index "题目索引(A/B/C...)"
+        varchar title "题目标题"
+        text statement "题目陈述"
+        text input_specification "输入规范"
+        text output_specification "输出规范"
+        nvarchar_max sample_tests "样例测试"
+        text notes "备注"
+        int time_limit_ms "时间限制"
+        int memory_limit_kb "内存限制"
+        varchar difficulty "难度"
+        int accepted_count "通过次数"
+        int submission_count "提交次数"
+        datetime2 creation_time "GETDATE()"
+        bit is_visible "是否可见"
+    }
+
+    SUBMISSION {
+        bigint submission_id PK "IDENTITY(1,1)"
+        bigint user_id FK "提交用户ID"
+        varchar problem_id FK "题目ID"
+        bigint contest_id FK "所属竞赛ID"
+        varchar programming_language "编程语言"
+        text source_code "源代码"
+        int source_length "代码长度"
+        varchar verdict "判题结果状态"
+        int time_consumed_ms "耗时"
+        int memory_consumed_kb "内存使用"
+        int passed_test_count "通过测试用例数"
+        nvarchar_max test_results "详细测试结果"
+        datetime2 submission_time "GETDATE()"
+        int relative_time "相对比赛时间"
+        int points "得分"
+    }
+
+    CONTEST_USER {
+        bigint contest_id FK "竞赛ID"
+        bigint user_id FK "用户ID"
+        datetime2 registration_time "GETDATE()"
+        varchar role "用户角色"
+        int rating_before "参赛前Rating"
+        int rating_after "参赛后Rating"
+        int contest_rank "比赛排名"
+        int solved_count "解题数"
+        int total_penalty "总罚时"
+        int scores "得分"
+    }
+
+    PROBLEM_TAG {
+        bigint tag_id PK "IDENTITY(1,1)"
+        varchar name UK "标签名"
+        text description "描述"
+    }
+
+    PROBLEM_TAG_RELATION {
+        varchar problem_id FK "题目ID"
+        bigint tag_id FK "标签ID"
+    }
+
+    TEST_CASE {
+        bigint test_case_id PK "IDENTITY(1,1)"
+        varchar problem_id FK "题目ID"
+        text input_data "输入数据"
+        text expected_output "期望输出"
+        bit is_sample "是否是样例"
+        int test_order "测试顺序"
+    }
+
+    HACK {
+        bigint hack_id PK "IDENTITY(1,1)"
+        bigint hacker_id FK "黑客用户ID"
+        bigint defender_id FK "被黑用户ID"
+        varchar problem_id FK "题目ID"
+        bigint contest_id FK "竞赛ID"
+        varchar verdict "Hack结果"
+        text test_case "测试用例"
+        datetime2 hack_time "GETDATE()"
+        text hack_result "Hack结果详情"
+    }
+
+    USER ||--o{ SUBMISSION : "makes"
+    PROBLEM ||--o{ SUBMISSION : "receives"
+    CONTEST ||--o{ SUBMISSION : "contains"
+    USER ||--o{ CONTEST_USER : "participates_in"
+    CONTEST ||--o{ CONTEST_USER : "has_participants"
+    CONTEST ||--o{ PROBLEM : "includes"
+    USER ||--o{ CONTEST : "created_by"
+    PROBLEM ||--o{ PROBLEM_TAG_RELATION : "has"
+    PROBLEM_TAG ||--o{ PROBLEM_TAG_RELATION : "categorizes"
+    USER ||--o{ HACK : "performs_as_hacker"
+    USER ||--o{ HACK : "targeted_as_defender"
+    PROBLEM ||--o{ HACK : "hacked_in"
+    CONTEST ||--o{ HACK : "occurs_in"
+    PROBLEM ||--o{ TEST_CASE : "has"
