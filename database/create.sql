@@ -1,12 +1,12 @@
 -- 创建数据库
-CREATE DATABASE codeforces_oj;
+CREATE DATABASE OJ;
 GO
 
-USE codeforces_oj;
+USE OJ;
 GO
 
 -- 用户表
-CREATE TABLE [USER] (
+CREATE TABLE Users (
     user_id BIGINT IDENTITY(1,1) PRIMARY KEY,
     handle VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -29,9 +29,9 @@ CREATE TABLE [USER] (
 GO
 
 -- 创建用户表索引
-CREATE INDEX idx_user_rating ON [USER](rating);
-CREATE INDEX idx_user_handle ON [USER](handle);
-CREATE INDEX idx_user_rank ON [USER](user_rank);
+CREATE INDEX idx_user_rating ON Users(rating);
+CREATE INDEX idx_user_handle ON Users(handle);
+CREATE INDEX idx_user_rank ON Users(user_rank);
 GO
 
 -- 比赛表
@@ -52,7 +52,7 @@ CREATE TABLE CONTEST (
     city VARCHAR(100),
     season VARCHAR(50),
     created_by BIGINT,
-    FOREIGN KEY (created_by) REFERENCES [USER](user_id)
+    FOREIGN KEY (created_by) REFERENCES Users (user_id)
 );
 GO
 
@@ -143,7 +143,7 @@ CREATE TABLE SUBMISSION (
     submission_time DATETIME2 DEFAULT GETDATE(),
     relative_time INT,
     points INT,
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (problem_id) REFERENCES PROBLEM(problem_id),
     FOREIGN KEY (contest_id) REFERENCES CONTEST(contest_id)
 );
@@ -169,7 +169,7 @@ CREATE TABLE CONTEST_USER (
     scores INT DEFAULT 0,
     PRIMARY KEY (contest_id, user_id),
     FOREIGN KEY (contest_id) REFERENCES CONTEST(contest_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES [USER](user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 GO
 
@@ -188,8 +188,8 @@ CREATE TABLE HACK (
     test_case TEXT NOT NULL,
     hack_time DATETIME2 DEFAULT GETDATE(),
     hack_result TEXT,
-    FOREIGN KEY (hacker_id) REFERENCES [USER](user_id),
-    FOREIGN KEY (defender_id) REFERENCES [USER](user_id),
+    FOREIGN KEY (hacker_id) REFERENCES Users(user_id),
+    FOREIGN KEY (defender_id) REFERENCES Users(user_id),
     FOREIGN KEY (problem_id) REFERENCES PROBLEM(problem_id),
     FOREIGN KEY (contest_id) REFERENCES CONTEST(contest_id)
 );

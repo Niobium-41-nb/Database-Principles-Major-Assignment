@@ -2,7 +2,7 @@
 
 # 数据库设计
 
-这是一个为在线判题系统（OJ）设计的数据库，特别是模仿 **Codeforces** 平台的功能和结构。数据库名为 `codeforces_oj`，使用 **Microsoft SQL Server** 语法编写。下面是对该数据库的详细介绍：
+这是一个为在线判题系统（OJ）设计的数据库，特别是模仿 **Codeforces** 平台的功能和结构。数据库名为 `OJ`，使用 **Microsoft SQL Server** 语法编写。下面是对该数据库的详细介绍：
 
 ---
 
