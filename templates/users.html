@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户列表 - 在线判题系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem; }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .user-list { display: grid; gap: 1rem; }
+        .user-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; display: flex; align-items: center; transition: all 0.3s ease; }
+        .user-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .user-avatar { width: 60px; height: 60px; border-radius: 50%; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin-right: 1rem; }
+        .user-info { flex: 1; }
+        .user-handle { font-size: 1.25rem; font-weight: bold; color: #2c3e50; margin: 0 0 0.5rem 0; }
+        .user-meta { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 0.875rem; color: #666; margin-bottom: 0.25rem; }
+        .meta-value { font-weight: 500; }
+        .user-rating { font-size: 1.1rem; font-weight: bold; text-align: right; min-width: 100px; }
+        .rating-high { color: #e74c3c; }
+        .rating-medium { color: #e67e22; }
+        .rating-low { color: #27ae60; }
+        .user-rank { background: #34495e; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; margin-left: 0.5rem; }
+        .search-box { margin-bottom: 1rem; }
+        .search-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        .filters { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>用户列表</h2>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" class="search-input" placeholder="搜索用户..." onkeyup="filterUsers()">
+            </div>
+            
+            <div class="filters">
+                <select id="rank-filter" class="filter-select" onchange="filterUsers()">
+                    <option value="">所有等级</option>
+                    <option value="Newbie">Newbie</option>
+                    <option value="Pupil">Pupil</option>
+                    <option value="Specialist">Specialist</option>
+                    <option value="Expert">Expert</option>
+                    <option value="Candidate Master">Candidate Master</option>
+                    <option value="Master">Master</option>
+                    <option value="International Master">International Master</option>
+                    <option value="Grandmaster">Grandmaster</option>
+                </select>
+                
+                <select id="rating-filter" class="filter-select" onchange="filterUsers()">
+                    <option value="">所有评分</option>
+                    <option value="0-1199">0-1199</option>
+                    <option value="1200-1399">1200-1399</option>
+                    <option value="1400-1599">1400-1599</option>
+                    <option value="1600-1899">1600-1899</option>
+                    <option value="1900-2399">1900-2399</option>
+                    <option value="2400+">2400+</option>
+                </select>
+                
+                <select id="sort-filter" class="filter-select" onchange="sortUsers()">
+                    <option value="rating-desc">评分降序</option>
+                    <option value="rating-asc">评分升序</option>
+                    <option value="registration-desc">注册时间降序</option>
+                    <option value="registration-asc">注册时间升序</option>
+                </select>
+            </div>
+            
+            <div id="users-list" class="user-list">
+                <!-- 用户数据将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allUsers = [];
+        
+        function getRatingClass(rating) {
+            if (rating >= 2400) return 'rating-high';
+            if (rating >= 1600) return 'rating-medium';
+            return 'rating-low';
+        }
+        
+        function getAvatarText(handle) {
+            return handle.charAt(0).toUpperCase();
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allUsers = result.users;
+                    displayUsers(allUsers);
+                } else {
+                    alert('加载用户列表失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('加载用户列表时发生错误: ' + error.message);
+            }
+        }
+        
+        function displayUsers(users) {
+            const usersList = document.getElementById('users-list');
+            usersList.innerHTML = '';
+            
+            if (users.length === 0) {
+                usersList.innerHTML = '<p>暂无用户数据</p>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                
+                userItem.innerHTML = `
+                    <div class="user-avatar">${getAvatarText(user.handle)}</div>
+                    <div class="user-info">
+                        <h3 class="user-handle">
+                            ${user.handle}
+                            ${user.name ? `<span style="color: #666; font-weight: normal;">(${user.name})</span>` : ''}
+                            <span class="user-rank">${user.rank}</span>
+                        </h3>
+                        <div class="user-meta">
+                            ${user.country ? `
+                            <div class="meta-item">
+                                <span class="meta-label">国家</span>
+                                <span class="meta-value">${user.country}</span>
+                            </div>
+                            ` : ''}
+                            ${user.city ? `
+                            <div class="meta-item">
+                                <span class="meta-label">城市</span>
+                                <span class="meta-value">${user.city}</span>
+                            </div>
+                            ` : ''}
+                            ${user.organization ? `
+                            <div class="meta-item">
+                                <span class="meta-label">组织</span>
+                                <span class="meta-value">${user.organization}</span>
+                            </div>
+                            ` : ''}
+                            <div class="meta-item">
+                                <span class="meta-label">最高评分</span>
+                                <span class="meta-value">${user.max_rating}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">最高等级</span>
+                                <span class="meta-value">${user.max_rank}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">注册时间</span>
+                                <span class="meta-value">${formatDate(user.registration_time)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-rating ${getRatingClass(user.rating)}">
+                        ${user.rating}
+                    </div>
+                `;
+                
+                usersList.appendChild(userItem);
+            });
+        }
+        
+        function filterUsers() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const rankFilter = document.getElementById('rank-filter').value;
+            const ratingFilter = document.getElementById('rating-filter').value;
+            
+            let filteredUsers = allUsers.filter(user => {
+                // 搜索过滤
+                const matchesSearch = user.handle.toLowerCase().includes(searchTerm) || 
+                                    (user.name && user.name.toLowerCase().includes(searchTerm));
+                
+                // 等级过滤
+                const matchesRank = !rankFilter || user.rank === rankFilter;
+                
+                // 评分过滤
+                let matchesRating = true;
+                if (ratingFilter) {
+                    const [min, max] = ratingFilter.split('-').map(val => {
+                        if (val.endsWith('+')) return parseInt(val) || 0;
+                        return parseInt(val) || 0;
+                    });
+                    
+                    if (ratingFilter.endsWith('+')) {
+                        matchesRating = user.rating >= min;
+                    } else {
+                        matchesRating = user.rating >= min && user.rating <= max;
+                    }
+                }
+                
+                return matchesSearch && matchesRank && matchesRating;
+            });
+            
+            displayUsers(filteredUsers);
+        }
+        
+        function sortUsers() {
+            const sortValue = document.getElementById('sort-filter').value;
+            
+            const sortedUsers = [...allUsers].sort((a, b) => {
+                switch (sortValue) {
+                    case 'rating-desc':
+                        return b.rating - a.rating;
+                    case 'rating-asc':
+                        return a.rating - b.rating;
+                    case 'registration-desc':
+                        return new Date(b.registration_time) - new Date(a.registration_time);
+                    case 'registration-asc':
+                        return new Date(a.registration_time) - new Date(b.registration_time);
+                    default:
+                        return 0;
+                }
+            });
+            
+            displayUsers(sortedUsers);
+        }
+        
+        // 页面加载时获取用户列表
+        document.addEventListener('DOMContentLoaded', loadUsers);
+    </script>
+</body>
+</html>
