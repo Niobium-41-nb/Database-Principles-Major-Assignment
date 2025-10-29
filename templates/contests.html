@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比赛列表 - 在线判题系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem; }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .contest-list { display: grid; gap: 1rem; }
+        .contest-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; transition: all 0.3s ease; }
+        .contest-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .contest-header { display: flex; justify-content: between; align-items: center; margin-bottom: 1rem; }
+        .contest-title { font-size: 1.25rem; font-weight: bold; color: #2c3e50; margin: 0; }
+        .contest-type { background: #3498db; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem; }
+        .contest-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 0.875rem; color: #666; margin-bottom: 0.25rem; }
+        .meta-value { font-weight: 500; }
+        .contest-actions { display: flex; gap: 0.5rem; }
+        .btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .phase-before { color: #e67e22; font-weight: bold; }
+        .phase-coding { color: #27ae60; font-weight: bold; }
+        .phase-finished { color: #7f8c8d; font-weight: bold; }
+        .difficulty-rating { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>比赛列表</h2>
+            <div id="contests-list" class="contest-list">
+                <!-- 比赛数据将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getPhaseText(phase) {
+            const phaseMap = {
+                'BEFORE': '未开始',
+                'CODING': '进行中',
+                'PENDING_SYSTEM_TEST': '等待系统测试',
+                'SYSTEM_TEST': '系统测试中',
+                'FINISHED': '已结束'
+            };
+            return phaseMap[phase] || phase;
+        }
+
+        function getPhaseClass(phase) {
+            const phaseClassMap = {
+                'BEFORE': 'phase-before',
+                'CODING': 'phase-coding',
+                'FINISHED': 'phase-finished'
+            };
+            return phaseClassMap[phase] || '';
+        }
+
+        function getTypeText(type) {
+            const typeMap = {
+                'CF': 'Codeforces式',
+                'IOI': 'IOI式',
+                'ICPC': 'ICPC式'
+            };
+            return typeMap[type] || type;
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}小时${minutes}分钟`;
+        }
+
+        async function loadContests() {
+            try {
+                const response = await fetch('/api/contests');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const contestsList = document.getElementById('contests-list');
+                    contestsList.innerHTML = '';
+                    
+                    if (result.contests.length === 0) {
+                        contestsList.innerHTML = '<p>暂无比赛</p>';
+                        return;
+                    }
+                    
+                    result.contests.forEach(contest => {
+                        const contestItem = document.createElement('div');
+                        contestItem.className = 'contest-item';
+                        
+                        contestItem.innerHTML = `
+                            <div class="contest-header">
+                                <h3 class="contest-title">${contest.name}</h3>
+                                <span class="contest-type">${getTypeText(contest.type)}</span>
+                            </div>
+                            
+                            <div class="contest-meta">
+                                <div class="meta-item">
+                                    <span class="meta-label">阶段</span>
+                                    <span class="meta-value ${getPhaseClass(contest.phase)}">${getPhaseText(contest.phase)}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">开始时间</span>
+                                    <span class="meta-value">${contest.start_time}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">结束时间</span>
+                                    <span class="meta-value">${contest.end_time}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">持续时间</span>
+                                    <span class="meta-value">${formatDuration(contest.duration)}</span>
+                                </div>
+                                ${contest.difficulty ? `
+                                <div class="meta-item">
+                                    <span class="meta-label">难度</span>
+                                    <span class="meta-value difficulty-rating">${contest.difficulty}</span>
+                                </div>
+                                ` : ''}
+                                ${contest.kind ? `
+                                <div class="meta-item">
+                                    <span class="meta-label">类型</span>
+                                    <span class="meta-value">${contest.kind}</span>
+                                </div>
+                                ` : ''}
+                                ${contest.region ? `
+                                <div class="meta-item">
+                                    <span class="meta-label">区域</span>
+                                    <span class="meta-value">${contest.region}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="contest-actions">
+                                <a href="/contest.html?id=${contest.contest_id}" class="btn btn-primary">查看详情</a>
+                                <a href="/api/contest/${contest.contest_id}/standings" class="btn btn-secondary">查看排名</a>
+                                ${contest.phase === 'BEFORE' ? `
+                                    <button class="btn btn-success" onclick="registerContest(${contest.contest_id})">报名参赛</button>
+                                ` : ''}
+                                ${contest.phase === 'CODING' ? `
+                                    <button class="btn btn-success" onclick="enterContest(${contest.contest_id})">进入比赛</button>
+                                ` : ''}
+                            </div>
+                        `;
+                        
+                        contestsList.appendChild(contestItem);
+                    });
+                } else {
+                    alert('加载比赛列表失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('加载比赛列表时发生错误: ' + error.message);
+            }
+        }
+
+        function registerContest(contestId) {
+            if (confirm('确定要报名参加这个比赛吗？')) {
+                // 这里可以添加报名逻辑
+                alert('报名成功！');
+            }
+        }
+
+        function enterContest(contestId) {
+            // 这里可以添加进入比赛逻辑
+            alert('进入比赛！');
+        }
+        
+        // 页面加载时获取比赛列表
+        document.addEventListener('DOMContentLoaded', loadContests);
+    </script>
+</body>
+</html>

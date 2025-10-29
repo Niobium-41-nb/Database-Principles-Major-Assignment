@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题目列表 - 在线判题系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem; }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .difficulty-easy { color: #28a745; }
+        .difficulty-medium { color: #ffc107; }
+        .difficulty-hard { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>题目列表</h2>
+            <div id="problems-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>题目ID</th>
+                            <th>标题</th>
+                            <th>难度</th>
+                            <th>通过率</th>
+                            <th>时间限制</th>
+                            <th>内存限制</th>
+                        </tr>
+                    </thead>
+                    <tbody id="problems-table-body">
+                        <!-- 题目数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadProblems() {
+            try {
+                const response = await fetch('/api/problems');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const tbody = document.getElementById('problems-table-body');
+                    tbody.innerHTML = '';
+                    
+                    result.problems.forEach(problem => {
+                        const passRate = problem.submission_count > 0 
+                            ? ((problem.accepted_count / problem.submission_count) * 100).toFixed(1) + '%'
+                            : '0%';
+                            
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${problem.problem_id}</td>
+                            <td><a href="/problem.html?id=${problem.problem_id}">${problem.title}</a></td>
+                            <td class="difficulty-${problem.difficulty?.toLowerCase() || 'easy'}">${problem.difficulty || '简单'}</td>
+                            <td>${problem.accepted_count}/${problem.submission_count} (${passRate})</td>
+                            <td>${problem.time_limit}ms</td>
+                            <td>${Math.floor(problem.memory_limit / 1024)}MB</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    alert('加载题目失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('加载题目时发生错误: ' + error.message);
+            }
+        }
+        
+        // 页面加载时获取题目列表
+        document.addEventListener('DOMContentLoaded', loadProblems);
+    </script>
+</body>
+</html>
