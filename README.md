@@ -109,7 +109,7 @@
 # 🗂️ 项目文件夹结构
 
 ```
-OnlineJudge/
+Database-Principles-Major-Assignment/
 ├── backend/                 # 后端 Flask 应用
 │   ├── app.py              # Flask 主程序入口
 │   ├── models.py           # 数据库模型（SQLAlchemy）
