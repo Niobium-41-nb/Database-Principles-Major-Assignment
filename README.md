@@ -6,7 +6,7 @@
 
 ---
 
-## [数据库结构概览](数据库结构概览.md)
+## [数据库结构概览](docs\数据库结构概览.md)
 
 该数据库包含以下主要表结构：
 
@@ -76,7 +76,7 @@
 - Hack结果（成功/失败/无效）
 - 使用的测试用例、Hack时间、结果详情
 
-## [功能实现](功能实现.md)
+## [功能实现](docs\功能实现.md)
 
 ### 查询
 
@@ -100,3 +100,100 @@
 
 3.提交
   - 在提交表中添加提交信息，评测结果用随机。
+
+
+基于你们的技术栈（前端：HTML/CSS/JS，后端：Python），我推荐使用 **Flask** 作为后端框架，因为它轻量、易上手，且与前端配合简单。以下是完整的项目框架设计：
+
+---
+
+# 🗂️ 项目文件夹结构
+
+```
+OnlineJudge/
+├── backend/                 # 后端 Flask 应用
+│   ├── app.py              # Flask 主程序入口
+│   ├── models.py           # 数据库模型（SQLAlchemy）
+│   ├── database.py         # 数据库连接与初始化
+│   ├── routes/             # 路由模块
+│   │   ├── user_routes.py
+│   │   ├── problem_routes.py
+│   │   ├── contest_routes.py
+│   │   └── submission_routes.py
+│   ├── utils/              # 工具函数
+│   │   ├── judge.py        # 模拟评测逻辑（随机结果）
+│   │   └── auth.py         # 认证相关
+│   ├── config.py           # 配置文件
+│   └── requirements.txt    # Python 依赖包
+│
+├── frontend/               # 前端静态文件
+│   ├── index.html          # 首页
+│   ├── css/
+│   │   └── style.css       # 全局样式
+│   ├── js/
+│   │   ├── main.js         # 主逻辑
+│   │   ├── user.js         # 用户相关功能
+│   │   ├── problem.js      # 题目展示与提交
+│   │   ├── contest.js      # 比赛列表与排名
+│   │   └── submission.js   # 提交记录查询
+│   └── assets/             # 图片、图标等静态资源
+│
+├── docs/                   # 项目文档
+│   ├── README.md
+│   ├── 功能实现.md
+│   └── 数据库结构概览.md
+│
+└── README.md               # 项目总说明
+```
+
+---
+
+# 🛠️ 技术栈说明
+
+### [后端（Python + Flask）](docs/后端开发手册.md)
+- **Flask**：轻量级 Web 框架
+- **SQLAlchemy**：ORM 数据库操作
+- **PyMySQL / pymssql**：连接 SQL Server
+- **Flask-CORS**：处理前端跨域请求
+
+### [前端（HTML + CSS + JS）](docs/前端开发手册.md)
+- 原生 JavaScript + Fetch API 与后端交互
+- CSS 使用 Flex/Grid 布局，响应式设计
+- 无需框架，便于快速上手和部署
+
+---
+
+## 📦 环境与依赖
+
+### `backend/requirements.txt`
+```txt
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-CORS==4.0.0
+pymssql==2.2.7
+```
+
+---
+
+## 🚀 快速开始
+
+### 1. 克隆项目并安装后端依赖
+```bash
+cd backend
+pip install -r requirements.txt
+```
+
+### 2. 配置数据库连接
+在 `backend/config.py` 中修改：
+```python
+SQLALCHEMY_DATABASE_URI = "mssql+pymssql://用户名:密码@服务器地址/数据库名"
+```
+
+### 3. 启动后端
+```bash
+python app.py
+```
+
+### 4. 启动前端
+用浏览器打开 `frontend/index.html`，或使用 Live Server（VSCode 插件）启动。
+
+---
