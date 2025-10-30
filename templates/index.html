@@ -28,8 +28,15 @@
                 <a href="/submissions">提交记录</a>
                 <a href="/users">用户</a>
                 <div id="auth-buttons">
-                    <button onclick="showLogin()">登录</button>
-                    <button onclick="showRegister()">注册</button>
+                    <div id="user-info" style="display: none;">
+                        <span id="user-handle" style="color: white; margin-right: 1rem;"></span>
+                        <a href="/profile" style="color: white; text-decoration: none; margin-right: 1rem;">个人资料</a>
+                        <button onclick="logout()" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer;">登出</button>
+                    </div>
+                    <div id="guest-buttons">
+                        <button onclick="showLogin()">登录</button>
+                        <button onclick="showRegister()">注册</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,6 +115,45 @@
                 hideRegister();
             }
         }
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const userInfo = document.getElementById('user-info');
+            const guestButtons = document.getElementById('guest-buttons');
+            const userHandle = document.getElementById('user-handle');
+            
+            // 这里应该从session或localStorage获取用户信息
+            // 暂时使用简单的检查方式
+            fetch('/api/user/current')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        userHandle.textContent = data.user.handle;
+                        userInfo.style.display = 'block';
+                        guestButtons.style.display = 'none';
+                    } else {
+                        userInfo.style.display = 'none';
+                        guestButtons.style.display = 'block';
+                    }
+                })
+                .catch(() => {
+                    userInfo.style.display = 'none';
+                    guestButtons.style.display = 'block';
+                });
+        }
+
+        // 登出功能
+        async function logout() {
+            const response = await fetch('/api/logout');
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                location.reload();
+            }
+        }
+
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);
     </script>
 </body>
 </html>

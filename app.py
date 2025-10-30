@@ -50,6 +50,11 @@ def users():
     """用户列表页面"""
     return render_template('users.html')
 
+@app.route('/profile')
+def profile():
+    """用户个人资料页面"""
+    return render_template('profile.html')
+
 # API 路由
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -478,6 +483,57 @@ def get_contest_standings(contest_id):
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取比赛排名失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/user/current')
+def get_current_user():
+    """获取当前登录用户信息"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '用户未登录'})
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT user_id, handle, email, name, rating, max_rating, user_rank, max_rank,
+                   country, city, organization, avatar, registration_time, last_online_time,
+                   contribution, is_admin
+            FROM Users
+            WHERE user_id = ? AND is_active = 1
+        """, (session['user_id'],))
+        
+        user = cursor.fetchone()
+        if not user:
+            return jsonify({'success': False, 'message': '用户不存在'})
+        
+        user_data = {
+            'user_id': user[0],
+            'handle': user[1],
+            'email': user[2],
+            'name': user[3],
+            'rating': user[4],
+            'max_rating': user[5],
+            'rank': user[6],
+            'max_rank': user[7],
+            'country': user[8],
+            'city': user[9],
+            'organization': user[10],
+            'avatar': user[11],
+            'registration_time': user[12].strftime('%Y-%m-%d %H:%M:%S'),
+            'last_online_time': user[13].strftime('%Y-%m-%d %H:%M:%S'),
+            'contribution': user[14],
+            'is_admin': user[15]
+        }
+        
+        return jsonify({'success': True, 'user': user_data})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'获取用户详情失败: {str(e)}'})
     finally:
         if 'cursor' in locals():
             cursor.close()

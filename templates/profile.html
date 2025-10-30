@@ -1,0 +1,285 @@
+<!-- templates/profile.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人资料 - 在线判题系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem; }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .btn { background: #3498db; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .profile-header { display: flex; align-items: center; margin-bottom: 2rem; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-right: 2rem; }
+        .user-info h2 { margin-bottom: 0.5rem; }
+        .rating { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .rank { color: #7f8c8d; margin-bottom: 0.5rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+        .stat-label { color: #7f8c8d; font-size: 0.9rem; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+        .info-item { margin-bottom: 1rem; }
+        .info-label { font-weight: bold; color: #2c3e50; margin-bottom: 0.25rem; }
+        .info-value { color: #34495e; }
+        .loading { text-align: center; padding: 2rem; }
+        .error { background: #e74c3c; color: white; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <div id="auth-buttons">
+                    <div id="user-info" style="display: none;">
+                        <span id="user-handle" style="color: white; margin-right: 1rem;"></span>
+                        <a href="/profile" style="color: white; text-decoration: none; margin-right: 1rem;">个人资料</a>
+                        <button onclick="logout()" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer;">登出</button>
+                    </div>
+                    <div id="guest-buttons">
+                        <button onclick="showLogin()">登录</button>
+                        <button onclick="showRegister()">注册</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="loading" class="loading">
+            <p>加载中...</p>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <div id="profile-content" style="display: none;">
+            <div class="profile-header">
+                <div class="avatar" id="user-avatar">
+                    <!-- 头像将在这里显示 -->
+                </div>
+                <div class="user-info">
+                    <h2 id="user-name"></h2>
+                    <div class="rating" id="user-rating"></div>
+                    <div class="rank" id="user-rank"></div>
+                    <div id="user-handle-display"></div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="max-rating">0</div>
+                    <div class="stat-label">最高Rating</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="max-rank">Newbie</div>
+                    <div class="stat-label">最高段位</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="contribution">0</div>
+                    <div class="stat-label">贡献值</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="registration-time">-</div>
+                    <div class="stat-label">注册时间</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>基本信息</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">用户名</div>
+                        <div class="info-value" id="info-handle"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">邮箱</div>
+                        <div class="info-value" id="info-email"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">姓名</div>
+                        <div class="info-value" id="info-name"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">国家</div>
+                        <div class="info-value" id="info-country"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">城市</div>
+                        <div class="info-value" id="info-city"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">组织</div>
+                        <div class="info-value" id="info-organization"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">最后在线</div>
+                        <div class="info-value" id="info-last-online"></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">管理员</div>
+                        <div class="info-value" id="info-admin"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>操作</h3>
+                <button onclick="logout()" class="btn btn-danger">登出</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div style="background: white; width: 300px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+            <h3>登录</h3>
+            <input type="text" id="login-handle" placeholder="用户名" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="password" id="login-password" placeholder="密码" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <button onclick="login()" class="btn">登录</button>
+            <button onclick="hideLogin()" class="btn" style="background: #95a5a6;">取消</button>
+        </div>
+    </div>
+
+    <script>
+        // 导航栏登录状态检查
+        function checkLoginStatus() {
+            const userInfo = document.getElementById('user-info');
+            const guestButtons = document.getElementById('guest-buttons');
+            const userHandle = document.getElementById('user-handle');
+            
+            fetch('/api/user/current')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        userHandle.textContent = data.user.handle;
+                        userInfo.style.display = 'block';
+                        guestButtons.style.display = 'none';
+                    } else {
+                        userInfo.style.display = 'none';
+                        guestButtons.style.display = 'block';
+                    }
+                })
+                .catch(() => {
+                    userInfo.style.display = 'none';
+                    guestButtons.style.display = 'block';
+                });
+        }
+
+        // 加载用户资料
+        function loadUserProfile() {
+            fetch('/api/user/current')
+                .then(response => response.json())
+                .then(data => {
+                    const loading = document.getElementById('loading');
+                    const profileContent = document.getElementById('profile-content');
+                    const errorMessage = document.getElementById('error-message');
+                    
+                    if (data.success && data.user) {
+                        const user = data.user;
+                        
+                        // 设置头像
+                        const avatar = document.getElementById('user-avatar');
+                        if (user.avatar) {
+                            avatar.innerHTML = `<img src="${user.avatar}" alt="${user.handle}" style="width: 100%; height: 100%; border-radius: 50%;">`;
+                        } else {
+                            avatar.textContent = user.handle.charAt(0).toUpperCase();
+                        }
+                        
+                        // 设置基本信息
+                        document.getElementById('user-name').textContent = user.name || user.handle;
+                        document.getElementById('user-rating').textContent = `Rating: ${user.rating}`;
+                        document.getElementById('user-rank').textContent = `段位: ${user.rank}`;
+                        document.getElementById('user-handle-display').textContent = `@${user.handle}`;
+                        
+                        // 设置统计数据
+                        document.getElementById('max-rating').textContent = user.max_rating;
+                        document.getElementById('max-rank').textContent = user.max_rank;
+                        document.getElementById('contribution').textContent = user.contribution;
+                        document.getElementById('registration-time').textContent = user.registration_time.split(' ')[0];
+                        
+                        // 设置详细信息
+                        document.getElementById('info-handle').textContent = user.handle;
+                        document.getElementById('info-email').textContent = user.email;
+                        document.getElementById('info-name').textContent = user.name || '未设置';
+                        document.getElementById('info-country').textContent = user.country || '未设置';
+                        document.getElementById('info-city').textContent = user.city || '未设置';
+                        document.getElementById('info-organization').textContent = user.organization || '未设置';
+                        document.getElementById('info-last-online').textContent = user.last_online_time;
+                        document.getElementById('info-admin').textContent = user.is_admin ? '是' : '否';
+                        
+                        loading.style.display = 'none';
+                        profileContent.style.display = 'block';
+                    } else {
+                        loading.style.display = 'none';
+                        errorMessage.textContent = data.message || '获取用户信息失败';
+                        errorMessage.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    const loading = document.getElementById('loading');
+                    const errorMessage = document.getElementById('error-message');
+                    loading.style.display = 'none';
+                    errorMessage.textContent = '网络错误，请稍后重试';
+                    errorMessage.style.display = 'block';
+                });
+        }
+
+        // 登录相关函数
+        function showLogin() {
+            document.getElementById('login-modal').style.display = 'block';
+        }
+
+        function hideLogin() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+
+        async function login() {
+            const handle = document.getElementById('login-handle').value;
+            const password = document.getElementById('login-password').value;
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handle, password })
+            });
+            
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                hideLogin();
+                location.reload();
+            }
+        }
+
+        // 登出功能
+        async function logout() {
+            const response = await fetch('/api/logout');
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                window.location.href = '/';
+            }
+        }
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadUserProfile();
+        });
+    </script>
+</body>
+</html>

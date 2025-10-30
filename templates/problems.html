@@ -30,6 +30,17 @@
                 <a href="/contests">比赛</a>
                 <a href="/submissions">提交记录</a>
                 <a href="/users">用户</a>
+                <div id="auth-buttons">
+                    <div id="user-info" style="display: none;">
+                        <span id="user-handle" style="color: white; margin-right: 1rem;"></span>
+                        <a href="/profile" style="color: white; text-decoration: none; margin-right: 1rem;">个人资料</a>
+                        <button onclick="logout()" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer;">登出</button>
+                    </div>
+                    <div id="guest-buttons">
+                        <button onclick="showLogin()">登录</button>
+                        <button onclick="showRegister()">注册</button>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -57,7 +68,79 @@
         </div>
     </div>
 
+    <!-- 登录模态框 -->
+    <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div style="background: white; width: 300px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+            <h3>登录</h3>
+            <input type="text" id="login-handle" placeholder="用户名" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="password" id="login-password" placeholder="密码" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <button onclick="login()" class="btn">登录</button>
+            <button onclick="hideLogin()" class="btn" style="background: #95a5a6;">取消</button>
+        </div>
+    </div>
+
     <script>
+        // 检查登录状态
+        function checkLoginStatus() {
+            const userInfo = document.getElementById('user-info');
+            const guestButtons = document.getElementById('guest-buttons');
+            const userHandle = document.getElementById('user-handle');
+            
+            fetch('/api/user/current')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        userHandle.textContent = data.user.handle;
+                        userInfo.style.display = 'block';
+                        guestButtons.style.display = 'none';
+                    } else {
+                        userInfo.style.display = 'none';
+                        guestButtons.style.display = 'block';
+                    }
+                })
+                .catch(() => {
+                    userInfo.style.display = 'none';
+                    guestButtons.style.display = 'block';
+                });
+        }
+
+        // 登录相关函数
+        function showLogin() {
+            document.getElementById('login-modal').style.display = 'block';
+        }
+
+        function hideLogin() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+
+        async function login() {
+            const handle = document.getElementById('login-handle').value;
+            const password = document.getElementById('login-password').value;
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ handle, password })
+            });
+            
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                hideLogin();
+                location.reload();
+            }
+        }
+
+        // 登出功能
+        async function logout() {
+            const response = await fetch('/api/logout');
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+                location.reload();
+            }
+        }
+
         async function loadProblems() {
             try {
                 const response = await fetch('/api/problems');
@@ -68,7 +151,7 @@
                     tbody.innerHTML = '';
                     
                     result.problems.forEach(problem => {
-                        const passRate = problem.submission_count > 0 
+                        const passRate = problem.submission_count > 0
                             ? ((problem.accepted_count / problem.submission_count) * 100).toFixed(1) + '%'
                             : '0%';
                             
@@ -91,8 +174,11 @@
             }
         }
         
-        // 页面加载时获取题目列表
-        document.addEventListener('DOMContentLoaded', loadProblems);
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadProblems();
+        });
     </script>
 </body>
 </html>
