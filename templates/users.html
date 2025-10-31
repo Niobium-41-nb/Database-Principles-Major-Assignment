@@ -31,6 +31,13 @@
         .search-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
         .filters { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
         .filter-select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: white; }
+        .admin-badge { background: #e74c3c; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem; }
+        .user-actions { margin-top: 0.5rem; display: flex; gap: 0.5rem; }
+        .btn { padding: 0.3rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.875rem; }
+        .btn-admin { background: #3498db; color: white; }
+        .btn-remove-admin { background: #e74c3c; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .admin-section { display: none; }
     </style>
 </head>
 <body>
@@ -51,11 +58,11 @@
     <div class="container">
         <div class="card">
             <h2>用户列表</h2>
-            
+
             <div class="search-box">
                 <input type="text" id="search-input" class="search-input" placeholder="搜索用户..." onkeyup="filterUsers()">
             </div>
-            
+
             <div class="filters">
                 <select id="rank-filter" class="filter-select" onchange="filterUsers()">
                     <option value="">所有等级</option>
@@ -68,7 +75,7 @@
                     <option value="International Master">International Master</option>
                     <option value="Grandmaster">Grandmaster</option>
                 </select>
-                
+
                 <select id="rating-filter" class="filter-select" onchange="filterUsers()">
                     <option value="">所有评分</option>
                     <option value="0-1199">0-1199</option>
@@ -78,15 +85,21 @@
                     <option value="1900-2399">1900-2399</option>
                     <option value="2400+">2400+</option>
                 </select>
-                
+
                 <select id="sort-filter" class="filter-select" onchange="sortUsers()">
                     <option value="rating-desc">评分降序</option>
                     <option value="rating-asc">评分升序</option>
                     <option value="registration-desc">注册时间降序</option>
                     <option value="registration-asc">注册时间升序</option>
                 </select>
+
+                <select id="admin-filter" class="filter-select" onchange="filterUsers()">
+                    <option value="">所有用户</option>
+                    <option value="admin">仅管理员</option>
+                    <option value="non-admin">非管理员</option>
+                </select>
             </div>
-            
+
             <div id="users-list" class="user-list">
                 <!-- 用户数据将通过JavaScript动态加载 -->
             </div>
@@ -95,27 +108,44 @@
 
     <script>
         let allUsers = [];
-        
+        let currentUser = null;
+        let isCurrentUserAdmin = false;
+
         function getRatingClass(rating) {
             if (rating >= 2400) return 'rating-high';
             if (rating >= 1600) return 'rating-medium';
             return 'rating-low';
         }
-        
+
         function getAvatarText(handle) {
             return handle.charAt(0).toUpperCase();
         }
-        
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('zh-CN');
+        }
+
+        // 检查当前用户权限
+        async function checkCurrentUser() {
+            try {
+                const response = await fetch('/api/user/current');
+                const result = await response.json();
+
+                if (result.success && result.user) {
+                    currentUser = result.user;
+                    isCurrentUserAdmin = result.user.is_admin;
+                }
+            } catch (error) {
+                console.error('获取当前用户信息失败:', error);
+            }
         }
 
         async function loadUsers() {
             try {
                 const response = await fetch('/api/users');
                 const result = await response.json();
-                
+
                 if (result.success) {
                     allUsers = result.users;
                     displayUsers(allUsers);
@@ -126,20 +156,23 @@
                 alert('加载用户列表时发生错误: ' + error.message);
             }
         }
-        
+
         function displayUsers(users) {
             const usersList = document.getElementById('users-list');
             usersList.innerHTML = '';
-            
+
             if (users.length === 0) {
                 usersList.innerHTML = '<p>暂无用户数据</p>';
                 return;
             }
-            
+
             users.forEach(user => {
                 const userItem = document.createElement('div');
                 userItem.className = 'user-item';
-                
+
+                const isAdmin = user.is_admin;
+                const isCurrentUser = currentUser && user.user_id === currentUser.user_id;
+
                 userItem.innerHTML = `
                     <div class="user-avatar">${getAvatarText(user.handle)}</div>
                     <div class="user-info">
@@ -147,6 +180,7 @@
                             ${user.handle}
                             ${user.name ? `<span style="color: #666; font-weight: normal;">(${user.name})</span>` : ''}
                             <span class="user-rank">${user.rank}</span>
+                            ${isAdmin ? '<span class="admin-badge">管理员</span>' : ''}
                         </h3>
                         <div class="user-meta">
                             ${user.country ? `
@@ -180,29 +214,38 @@
                                 <span class="meta-value">${formatDate(user.registration_time)}</span>
                             </div>
                         </div>
+                        ${isCurrentUserAdmin && !isCurrentUser ? `
+                        <div class="user-actions">
+                            ${!isAdmin ?
+                                `<button class="btn btn-admin" onclick="setAdmin(${user.user_id}, true)">设为管理员</button>` :
+                                `<button class="btn btn-remove-admin" onclick="setAdmin(${user.user_id}, false)">取消管理员</button>`
+                            }
+                        </div>
+                        ` : ''}
                     </div>
                     <div class="user-rating ${getRatingClass(user.rating)}">
                         ${user.rating}
                     </div>
                 `;
-                
+
                 usersList.appendChild(userItem);
             });
         }
-        
+
         function filterUsers() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const rankFilter = document.getElementById('rank-filter').value;
             const ratingFilter = document.getElementById('rating-filter').value;
-            
+            const adminFilter = document.getElementById('admin-filter').value;
+
             let filteredUsers = allUsers.filter(user => {
                 // 搜索过滤
-                const matchesSearch = user.handle.toLowerCase().includes(searchTerm) || 
+                const matchesSearch = user.handle.toLowerCase().includes(searchTerm) ||
                                     (user.name && user.name.toLowerCase().includes(searchTerm));
-                
+
                 // 等级过滤
                 const matchesRank = !rankFilter || user.rank === rankFilter;
-                
+
                 // 评分过滤
                 let matchesRating = true;
                 if (ratingFilter) {
@@ -210,23 +253,31 @@
                         if (val.endsWith('+')) return parseInt(val) || 0;
                         return parseInt(val) || 0;
                     });
-                    
+
                     if (ratingFilter.endsWith('+')) {
                         matchesRating = user.rating >= min;
                     } else {
                         matchesRating = user.rating >= min && user.rating <= max;
                     }
                 }
-                
-                return matchesSearch && matchesRank && matchesRating;
+
+                // 管理员过滤
+                let matchesAdmin = true;
+                if (adminFilter === 'admin') {
+                    matchesAdmin = user.is_admin;
+                } else if (adminFilter === 'non-admin') {
+                    matchesAdmin = !user.is_admin;
+                }
+
+                return matchesSearch && matchesRank && matchesRating && matchesAdmin;
             });
-            
+
             displayUsers(filteredUsers);
         }
-        
+
         function sortUsers() {
             const sortValue = document.getElementById('sort-filter').value;
-            
+
             const sortedUsers = [...allUsers].sort((a, b) => {
                 switch (sortValue) {
                     case 'rating-desc':
@@ -241,12 +292,46 @@
                         return 0;
                 }
             });
-            
+
             displayUsers(sortedUsers);
         }
-        
-        // 页面加载时获取用户列表
-        document.addEventListener('DOMContentLoaded', loadUsers);
+
+        // 设置/取消管理员权限
+        async function setAdmin(userId, isAdmin) {
+            if (!confirm(`确定要${isAdmin ? '设为' : '取消'}管理员权限吗？`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/set_admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        is_admin: isAdmin
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(result.message);
+                    // 重新加载用户列表
+                    await loadUsers();
+                } else {
+                    alert('操作失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('操作失败: ' + error.message);
+            }
+        }
+
+        // 页面加载时获取用户列表和当前用户信息
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkCurrentUser();
+            await loadUsers();
+        });
     </script>
 </body>
 </html>

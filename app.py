@@ -442,7 +442,7 @@ def get_users():
         
         cursor.execute("""
             SELECT user_id, handle, name, rating, max_rating, user_rank, max_rank,
-                   country, city, organization, registration_time
+                   country, city, organization, registration_time, is_admin
             FROM Users
             WHERE is_active = 1
             ORDER BY rating DESC
@@ -461,7 +461,8 @@ def get_users():
                 'country': row[7],
                 'city': row[8],
                 'organization': row[9],
-                'registration_time': row[10].strftime('%Y-%m-%d %H:%M:%S')
+                'registration_time': row[10].strftime('%Y-%m-%d %H:%M:%S'),
+                'is_admin': row[11]  # 添加管理员信息
             })
         
         return jsonify({'success': True, 'users': users})
@@ -804,6 +805,52 @@ def create_problem():
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'创建题目失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+@app.route('/api/user/set_admin', methods=['POST'])
+def set_admin():
+    """设置用户管理员权限"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    # 检查当前用户是否是管理员
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以设置管理员权限'})
+
+    data = request.json
+    target_user_id = data.get('user_id')
+    is_admin = data.get('is_admin', False)
+
+    if not target_user_id:
+        return jsonify({'success': False, 'message': '用户ID不能为空'})
+
+    # 不能修改自己的管理员权限
+    if target_user_id == session['user_id']:
+        return jsonify({'success': False, 'message': '不能修改自己的管理员权限'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 检查目标用户是否存在
+        cursor.execute("SELECT user_id FROM Users WHERE user_id = ? AND is_active = 1", (target_user_id,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': '用户不存在'})
+
+        # 更新管理员权限
+        cursor.execute("UPDATE Users SET is_admin = ? WHERE user_id = ?", (is_admin, target_user_id))
+        conn.commit()
+
+        action = "设为" if is_admin else "取消"
+        return jsonify({'success': True, 'message': f'用户已{action}管理员'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'设置管理员权限失败: {str(e)}'})
     finally:
         if 'cursor' in locals():
             cursor.close()
