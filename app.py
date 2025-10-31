@@ -935,5 +935,103 @@ def create_contest():
         if 'conn' in locals():
             conn.close()
 
+
+@app.route('/contest/<contest_id>')
+def contest_detail(contest_id):
+    """比赛详情页面"""
+    return render_template('contest_detail.html', contest_id=contest_id)
+
+
+@app.route('/contest/<contest_id>/standings')
+def contest_standings_page(contest_id):
+    """比赛排名页面"""
+    return render_template('contest_standings.html', contest_id=contest_id)
+
+
+@app.route('/api/contest/<contest_id>')
+def get_contest_detail(contest_id):
+    """获取比赛详情"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT contest_id, name, type, phase, start_time, duration_seconds,
+                   description, difficulty, kind, icpc_region, country, city, season
+            FROM CONTEST
+            WHERE contest_id = ?
+        """, (contest_id,))
+
+        contest = cursor.fetchone()
+        if not contest:
+            return jsonify({'success': False, 'message': '比赛不存在'})
+
+        # 计算结束时间
+        start_time = contest[4]
+        duration = contest[5]
+        end_time = start_time + timedelta(seconds=duration)
+
+        contest_data = {
+            'contest_id': contest[0],
+            'name': contest[1],
+            'type': contest[2],
+            'phase': contest[3],
+            'start_time': contest[4].strftime('%Y-%m-%d %H:%M:%S'),
+            'end_time': end_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'duration': contest[5],
+            'description': contest[6],
+            'difficulty': contest[7],
+            'kind': contest[8],
+            'icpc_region': contest[9],
+            'country': contest[10],
+            'city': contest[11],
+            'season': contest[12]
+        }
+
+        return jsonify({'success': True, 'contest': contest_data})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'获取比赛详情失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+@app.route('/api/contest/<contest_id>/problems')
+def get_contest_problems(contest_id):
+    """获取比赛题目列表"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT problem_id, title, difficulty, time_limit_ms, memory_limit_kb
+            FROM PROBLEM
+            WHERE contest_id = ? AND is_visible = 1
+            ORDER BY problem_index
+        """, (contest_id,))
+
+        problems = []
+        for row in cursor.fetchall():
+            problems.append({
+                'problem_id': row[0],
+                'title': row[1],
+                'difficulty': row[2],
+                'time_limit': row[3],
+                'memory_limit': row[4]
+            })
+
+        return jsonify({'success': True, 'problems': problems})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'获取比赛题目失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

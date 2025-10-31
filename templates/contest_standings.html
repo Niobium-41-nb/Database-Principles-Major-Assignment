@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>比赛排名 - 在线判题系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem; }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .btn { background: #3498db; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #2980b9; }
+        .btn-secondary { background: #95a5a6; }
+        .btn-secondary:hover { background: #7f8c8d; }
+        .standings-table { width: 100%; border-collapse: collapse; }
+        .standings-table th, .standings-table td { padding: 0.75rem; text-align: center; border-bottom: 1px solid #ddd; }
+        .standings-table th { background: #f8f9fa; font-weight: bold; }
+        .standings-table tr:hover { background: #f8f9fa; }
+        .rank-1 { background: #fff9c4 !important; }
+        .rank-2 { background: #f5f5f5 !important; }
+        .rank-3 { background: #ffecb3 !important; }
+        .user-handle { color: #3498db; text-decoration: none; font-weight: 500; }
+        .user-handle:hover { color: #2980b9; text-decoration: underline; }
+        .rating-high { color: #e74c3c; }
+        .rating-medium { color: #e67e22; }
+        .rating-low { color: #27ae60; }
+        .accepted { color: #27ae60; font-weight: bold; }
+        .wrong-answer { color: #e74c3c; }
+        .pagination { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+        .page-btn { padding: 0.5rem 1rem; border: 1px solid #ddd; background: white; cursor: pointer; }
+        .page-btn.active { background: #3498db; color: white; border-color: #3498db; }
+        .page-btn:hover:not(.active) { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile" id="profile-link">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="loading" class="card">
+            <p>加载排名中...</p>
+        </div>
+
+        <div id="standings-content" style="display: none;">
+            <div class="card">
+                <div class="header-row">
+                    <h1 id="contest-title">比赛排名</h1>
+                    <a href="#" id="contest-detail-link" class="btn btn-secondary">返回比赛详情</a>
+                </div>
+
+                <div class="contest-info" id="contest-info">
+                    <!-- 比赛信息将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <div class="card">
+                <div id="standings-table-container">
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th width="80">排名</th>
+                                <th>用户</th>
+                                <th width="100">评分</th>
+                                <th width="120">解题数</th>
+                                <th width="120">罚时</th>
+                                <th width="100">得分</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-table-body">
+                            <!-- 排名数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination">
+                    <!-- 分页控件将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <div id="error-message" class="card" style="display: none; background: #f8d7da; color: #721c24;">
+            <h2>错误</h2>
+            <p id="error-text"></p>
+            <a href="/contests" class="btn btn-secondary">返回比赛列表</a>
+        </div>
+    </div>
+
+    <script>
+        let contestId = new URLSearchParams(window.location.search).get('id') || window.location.pathname.split('/').pop();
+        let standings = [];
+        const pageSize = 50;
+        let currentPage = 1;
+
+        function getRatingClass(rating) {
+            if (rating >= 2400) return 'rating-high';
+            if (rating >= 1600) return 'rating-medium';
+            return 'rating-low';
+        }
+
+        function formatPenalty(penalty) {
+            if (!penalty) return '0';
+            const minutes = Math.floor(penalty / 60);
+            return `${minutes}`;
+        }
+
+        async function loadContestInfo() {
+            try {
+                const response = await fetch(`/api/contest/${contestId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('contest-title').textContent = `${result.contest.name} - 排名`;
+                    document.title = `${result.contest.name} 排名 - 在线判题系统`;
+                    document.getElementById('contest-detail-link').href = `/contest/${contestId}`;
+
+                    document.getElementById('contest-info').innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <div>
+                                <strong>比赛阶段:</strong> ${getPhaseText(result.contest.phase)}
+                            </div>
+                            <div>
+                                <strong>开始时间:</strong> ${result.contest.start_time}
+                            </div>
+                            <div>
+                                <strong>结束时间:</strong> ${result.contest.end_time}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载比赛信息失败:', error);
+            }
+        }
+
+        function getPhaseText(phase) {
+            const phaseMap = {
+                'BEFORE': '未开始',
+                'CODING': '进行中',
+                'PENDING_SYSTEM_TEST': '等待系统测试',
+                'SYSTEM_TEST': '系统测试中',
+                'FINISHED': '已结束'
+            };
+            return phaseMap[phase] || phase;
+        }
+
+        async function loadStandings() {
+            if (!contestId) {
+                showError('比赛ID不存在');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/contest/${contestId}/standings`);
+                const result = await response.json();
+
+                if (result.success) {
+                    standings = result.standings;
+                    displayStandings();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('standings-content').style.display = 'block';
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                showError('加载排名失败: ' + error.message);
+            }
+        }
+
+        function displayStandings() {
+            const tbody = document.getElementById('standings-table-body');
+            const pagination = document.getElementById('pagination');
+
+            if (standings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">暂无排名数据</td></tr>';
+                pagination.innerHTML = '';
+                return;
+            }
+
+            // 计算分页
+            const totalPages = Math.ceil(standings.length / pageSize);
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, standings.length);
+            const pageData = standings.slice(startIndex, endIndex);
+
+            // 显示当前页数据
+            tbody.innerHTML = '';
+            pageData.forEach((standing, index) => {
+                const globalRank = startIndex + index + 1;
+                const row = document.createElement('tr');
+                if (globalRank <= 3) {
+                    row.className = `rank-${globalRank}`;
+                }
+
+                row.innerHTML = `
+                    <td>${globalRank}</td>
+                    <td>
+                        <a href="/profile?user=${standing.handle}" class="user-handle">
+                            ${standing.handle}
+                        </a>
+                    </td>
+                    <td class="${getRatingClass(standing.rating)}">${standing.rating}</td>
+                    <td class="accepted">${standing.solved_count || 0}</td>
+                    <td>${formatPenalty(standing.penalty)}</td>
+                    <td><strong>${standing.score || 0}</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // 显示分页控件
+            pagination.innerHTML = '';
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    pageBtn.textContent = i;
+                    pageBtn.onclick = () => {
+                        currentPage = i;
+                        displayStandings();
+                    };
+                    pagination.appendChild(pageBtn);
+                }
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-text').textContent = message;
+        }
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadContestInfo();
+            loadStandings();
+        });
+    </script>
+</body>
+</html>
