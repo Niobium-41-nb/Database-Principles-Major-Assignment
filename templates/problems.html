@@ -20,6 +20,12 @@
         .difficulty-hard { color: #dc3545; }
         .problem-link { color: #3498db; text-decoration: none; font-weight: 500; }
         .problem-link:hover { color: #2980b9; text-decoration: underline; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .btn { background: #3498db; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #2980b9; }
+        .btn-create { background: #27ae60; }
+        .btn-create:hover { background: #219a52; }
+        #create-problem-btn { display: none; }
     </style>
 </head>
 <body>
@@ -32,24 +38,17 @@
                 <a href="/contests">比赛</a>
                 <a href="/submissions">提交记录</a>
                 <a href="/users">用户</a>
-                <div id="auth-buttons">
-                    <div id="user-info" style="display: none;">
-                        <span id="user-handle" style="color: white; margin-right: 1rem;"></span>
-                        <a href="/profile" style="color: white; text-decoration: none; margin-right: 1rem;">个人资料</a>
-                        <button onclick="logout()" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer;">登出</button>
-                    </div>
-                    <div id="guest-buttons">
-                        <button onclick="showLogin()">登录</button>
-                        <button onclick="showRegister()">注册</button>
-                    </div>
-                </div>
+                <a href="/profile" id="profile-link">个人资料</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
         <div class="card">
-            <h2>题目列表</h2>
+            <div class="header-row">
+                <h2>题目列表</h2>
+                <a href="/create-problem" class="btn btn-create" id="create-problem-btn">创建题目</a>
+            </div>
             <div id="problems-list">
                 <table>
                     <thead>
@@ -97,25 +96,20 @@
     <script>
         // 检查登录状态
         function checkLoginStatus() {
-            const userInfo = document.getElementById('user-info');
-            const guestButtons = document.getElementById('guest-buttons');
-            const userHandle = document.getElementById('user-handle');
+            const createProblemBtn = document.getElementById('create-problem-btn');
 
             fetch('/api/user/current')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success && data.user) {
-                        userHandle.textContent = data.user.handle;
-                        userInfo.style.display = 'block';
-                        guestButtons.style.display = 'none';
+                    if (data.success && data.user && data.user.is_admin) {
+                        // 只有管理员才显示创建题目按钮
+                        createProblemBtn.style.display = 'inline-block';
                     } else {
-                        userInfo.style.display = 'none';
-                        guestButtons.style.display = 'block';
+                        createProblemBtn.style.display = 'none';
                     }
                 })
                 .catch(() => {
-                    userInfo.style.display = 'none';
-                    guestButtons.style.display = 'block';
+                    createProblemBtn.style.display = 'none';
                 });
         }
 

@@ -609,5 +609,206 @@ def get_user_detail(user_id):
         if 'conn' in locals():
             conn.close()
 
+
+@app.route('/api/user/update', methods=['POST'])
+def update_user_profile():
+    """更新用户个人信息"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    data = request.json
+    user_id = session['user_id']
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 构建更新字段和参数
+        update_fields = []
+        params = []
+
+        allowed_fields = ['name', 'country', 'city', 'organization', 'avatar']
+        for field in allowed_fields:
+            if field in data:
+                update_fields.append(f"{field} = ?")
+                params.append(data[field])
+
+        # 如果没有要更新的字段
+        if not update_fields:
+            return jsonify({'success': False, 'message': '没有要更新的信息'})
+
+        # 添加用户ID参数
+        params.append(user_id)
+
+        # 执行更新
+        update_query = f"UPDATE Users SET {', '.join(update_fields)} WHERE user_id = ?"
+        cursor.execute(update_query, params)
+
+        # 更新session中的用户信息
+        if 'name' in data:
+            session['name'] = data['name']
+
+        conn.commit()
+
+        return jsonify({'success': True, 'message': '个人信息更新成功'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+@app.route('/api/user/change_password', methods=['POST'])
+def change_password():
+    """修改密码"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    data = request.json
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    user_id = session['user_id']
+
+    if not old_password or not new_password:
+        return jsonify({'success': False, 'message': '请填写完整信息'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 验证旧密码
+        cursor.execute("SELECT user_id FROM Users WHERE user_id = ? AND password = ?", (user_id, old_password))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': '原密码错误'})
+
+        # 更新密码
+        cursor.execute("UPDATE Users SET password = ? WHERE user_id = ?", (new_password, user_id))
+        conn.commit()
+
+        return jsonify({'success': True, 'message': '密码修改成功'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'密码修改失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+
+@app.route('/create-problem')
+def create_problem_page():
+    """题目创建页面"""
+    return render_template('create_problem.html')
+
+
+@app.route('/api/problems/create', methods=['POST'])
+def create_problem():
+    """创建题目"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    # 检查是否是管理员
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以创建题目'})
+
+    data = request.json
+
+    required_fields = ['problem_id', 'title', 'statement', 'time_limit', 'memory_limit']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'success': False, 'message': f'字段 {field} 不能为空'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 检查题目ID是否已存在
+        cursor.execute("SELECT problem_id FROM PROBLEM WHERE problem_id = ?", (data['problem_id'],))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': '题目ID已存在'})
+
+        # 插入题目基本信息
+        cursor.execute("""
+            INSERT INTO PROBLEM (
+                problem_id, title, statement, input_specification, output_specification,
+                time_limit_ms, memory_limit_kb, difficulty, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            data['problem_id'],
+            data['title'],
+            data.get('statement', ''),
+            data.get('input_specification', ''),
+            data.get('output_specification', ''),
+            data['time_limit'],
+            data['memory_limit'],
+            data.get('difficulty', '简单'),
+            data.get('notes', '')
+        ))
+
+        # 处理标签
+        tags = data.get('tags', [])
+        for tag_name in tags:
+            # 检查标签是否存在
+            cursor.execute("SELECT tag_id FROM PROBLEM_TAG WHERE name = ?", (tag_name,))
+            tag_row = cursor.fetchone()
+
+            if tag_row:
+                tag_id = tag_row[0]
+            else:
+                # 创建新标签
+                cursor.execute("INSERT INTO PROBLEM_TAG (name) VALUES (?)", (tag_name,))
+                tag_id = cursor.execute("SELECT @@IDENTITY").fetchone()[0]
+
+            # 建立题目标签关系
+            cursor.execute(
+                "INSERT INTO PROBLEM_TAG_RELATION (problem_id, tag_id) VALUES (?, ?)",
+                (data['problem_id'], tag_id)
+            )
+
+        # 处理测试用例
+        test_cases = data.get('test_cases', [])
+        sample_tests = []
+
+        for i, test_case in enumerate(test_cases):
+            cursor.execute("""
+                INSERT INTO TEST_CASE (problem_id, input_data, expected_output, is_sample, test_order)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                data['problem_id'],
+                test_case['input'],
+                test_case['output'],
+                test_case.get('is_sample', False),
+                test_case.get('test_order', i + 1)
+            ))
+
+            # 收集样例测试用于存储到problem表
+            if test_case.get('is_sample', False):
+                sample_tests.append({
+                    'input': test_case['input'],
+                    'output': test_case['output']
+                })
+
+        # 更新题目的sample_tests字段
+        if sample_tests:
+            cursor.execute(
+                "UPDATE PROBLEM SET sample_tests = ? WHERE problem_id = ?",
+                (json.dumps(sample_tests), data['problem_id'])
+            )
+
+        conn.commit()
+        return jsonify({'success': True, 'message': '题目创建成功'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'创建题目失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

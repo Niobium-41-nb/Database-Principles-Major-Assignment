@@ -1,4 +1,3 @@
-<!-- templates/profile.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -11,27 +10,38 @@
         .navbar { background: #2c3e50; color: white; padding: 1rem; }
         .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
         .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
         .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-        .btn { background: #3498db; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
+        .profile-header { display: flex; align-items: center; margin-bottom: 2rem; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; margin-right: 2rem; }
+        .user-info h1 { margin-bottom: 0.5rem; color: #2c3e50; }
+        .user-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .meta-item { display: flex; flex-direction: column; }
+        .meta-label { font-size: 0.875rem; color: #666; margin-bottom: 0.25rem; }
+        .meta-value { font-weight: 500; }
+        .section-title { border-bottom: 2px solid #3498db; padding-bottom: 0.5rem; margin-bottom: 1rem; color: #2c3e50; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333; }
+        .form-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        .form-input:focus { outline: none; border-color: #3498db; }
+        .btn { background: #3498db; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: background 0.3s; }
         .btn:hover { background: #2980b9; }
+        .btn-secondary { background: #95a5a6; }
+        .btn-secondary:hover { background: #7f8c8d; }
         .btn-danger { background: #e74c3c; }
         .btn-danger:hover { background: #c0392b; }
-        .profile-header { display: flex; align-items: center; margin-bottom: 2rem; }
-        .avatar { width: 100px; height: 100px; border-radius: 50%; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-right: 2rem; }
-        .user-info h2 { margin-bottom: 0.5rem; }
-        .rating { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; }
-        .rank { color: #7f8c8d; margin-bottom: 0.5rem; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
-        .stat-value { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
-        .stat-label { color: #7f8c8d; font-size: 0.9rem; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
-        .info-item { margin-bottom: 1rem; }
-        .info-label { font-weight: bold; color: #2c3e50; margin-bottom: 0.25rem; }
-        .info-value { color: #34495e; }
-        .loading { text-align: center; padding: 2rem; }
-        .error { background: #e74c3c; color: white; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+        .tab-container { margin-bottom: 1rem; }
+        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 1rem; }
+        .tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab.active { border-bottom-color: #3498db; color: #3498db; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .message { padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .rating-high { color: #e74c3c; }
+        .rating-medium { color: #e67e22; }
+        .rating-low { color: #27ae60; }
     </style>
 </head>
 <body>
@@ -44,242 +54,292 @@
                 <a href="/contests">比赛</a>
                 <a href="/submissions">提交记录</a>
                 <a href="/users">用户</a>
-                <div id="auth-buttons">
-                    <div id="user-info" style="display: none;">
-                        <span id="user-handle" style="color: white; margin-right: 1rem;"></span>
-                        <a href="/profile" style="color: white; text-decoration: none; margin-right: 1rem;">个人资料</a>
-                        <button onclick="logout()" style="background: #e74c3c; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer;">登出</button>
-                    </div>
-                    <div id="guest-buttons">
-                        <button onclick="showLogin()">登录</button>
-                        <button onclick="showRegister()">注册</button>
-                    </div>
-                </div>
+                <a href="/profile" id="profile-link">个人资料</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <div id="loading" class="loading">
-            <p>加载中...</p>
+        <div id="login-prompt" class="card" style="display: none;">
+            <h2>请先登录</h2>
+            <p>您需要登录后才能查看和修改个人资料。</p>
+            <button onclick="location.href='/'" class="btn">返回首页</button>
         </div>
-
-        <div id="error-message" class="error" style="display: none;"></div>
 
         <div id="profile-content" style="display: none;">
-            <div class="profile-header">
-                <div class="avatar" id="user-avatar">
-                    <!-- 头像将在这里显示 -->
-                </div>
-                <div class="user-info">
-                    <h2 id="user-name"></h2>
-                    <div class="rating" id="user-rating"></div>
-                    <div class="rank" id="user-rank"></div>
-                    <div id="user-handle-display"></div>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="max-rating">0</div>
-                    <div class="stat-label">最高Rating</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="max-rank">Newbie</div>
-                    <div class="stat-label">最高段位</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="contribution">0</div>
-                    <div class="stat-label">贡献值</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="registration-time">-</div>
-                    <div class="stat-label">注册时间</div>
-                </div>
-            </div>
-
             <div class="card">
-                <h3>基本信息</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">用户名</div>
-                        <div class="info-value" id="info-handle"></div>
+                <div class="profile-header">
+                    <div class="avatar" id="user-avatar">U</div>
+                    <div class="user-info">
+                        <h1 id="user-handle">用户名</h1>
+                        <div id="user-rating" class="rating-low">0</div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">邮箱</div>
-                        <div class="info-value" id="info-email"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">姓名</div>
-                        <div class="info-value" id="info-name"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">国家</div>
-                        <div class="info-value" id="info-country"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">城市</div>
-                        <div class="info-value" id="info-city"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">组织</div>
-                        <div class="info-value" id="info-organization"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">最后在线</div>
-                        <div class="info-value" id="info-last-online"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">管理员</div>
-                        <div class="info-value" id="info-admin"></div>
-                    </div>
+                </div>
+
+                <div class="user-meta" id="user-meta">
+                    <!-- 用户信息将通过JavaScript动态加载 -->
                 </div>
             </div>
 
-            <div class="card">
-                <h3>操作</h3>
-                <button onclick="logout()" class="btn btn-danger">登出</button>
-            </div>
-        </div>
-    </div>
+            <div class="tab-container">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('edit-profile')">编辑资料</div>
+                    <div class="tab" onclick="switchTab('change-password')">修改密码</div>
+                </div>
 
-    <!-- 登录模态框 -->
-    <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
-        <div style="background: white; width: 300px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
-            <h3>登录</h3>
-            <input type="text" id="login-handle" placeholder="用户名" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
-            <input type="password" id="login-password" placeholder="密码" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
-            <button onclick="login()" class="btn">登录</button>
-            <button onclick="hideLogin()" class="btn" style="background: #95a5a6;">取消</button>
+                <div id="edit-profile" class="tab-content active">
+                    <div class="card">
+                        <h2 class="section-title">编辑个人资料</h2>
+                        <div id="profile-message"></div>
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label class="form-label">姓名</label>
+                                <input type="text" id="name" class="form-input" placeholder="请输入您的姓名">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">国家</label>
+                                <input type="text" id="country" class="form-input" placeholder="请输入您的国家">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">城市</label>
+                                <input type="text" id="city" class="form-input" placeholder="请输入您的城市">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">组织/学校</label>
+                                <input type="text" id="organization" class="form-input" placeholder="请输入您的组织或学校">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">头像URL</label>
+                                <input type="text" id="avatar" class="form-input" placeholder="请输入头像图片的URL">
+                            </div>
+                            <button type="submit" class="btn">保存更改</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="change-password" class="tab-content">
+                    <div class="card">
+                        <h2 class="section-title">修改密码</h2>
+                        <div id="password-message"></div>
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label class="form-label">原密码</label>
+                                <input type="password" id="old-password" class="form-input" placeholder="请输入原密码">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">新密码</label>
+                                <input type="password" id="new-password" class="form-input" placeholder="请输入新密码">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">确认新密码</label>
+                                <input type="password" id="confirm-password" class="form-input" placeholder="请再次输入新密码">
+                            </div>
+                            <button type="submit" class="btn">修改密码</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 导航栏登录状态检查
-        function checkLoginStatus() {
-            const userInfo = document.getElementById('user-info');
-            const guestButtons = document.getElementById('guest-buttons');
-            const userHandle = document.getElementById('user-handle');
-            
-            fetch('/api/user/current')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success && data.user) {
-                        userHandle.textContent = data.user.handle;
-                        userInfo.style.display = 'block';
-                        guestButtons.style.display = 'none';
-                    } else {
-                        userInfo.style.display = 'none';
-                        guestButtons.style.display = 'block';
-                    }
-                })
-                .catch(() => {
-                    userInfo.style.display = 'none';
-                    guestButtons.style.display = 'block';
-                });
+        let currentUser = null;
+
+        function getRatingClass(rating) {
+            if (rating >= 2400) return 'rating-high';
+            if (rating >= 1600) return 'rating-medium';
+            return 'rating-low';
         }
 
-        // 加载用户资料
-        function loadUserProfile() {
-            fetch('/api/user/current')
-                .then(response => response.json())
-                .then(data => {
-                    const loading = document.getElementById('loading');
-                    const profileContent = document.getElementById('profile-content');
-                    const errorMessage = document.getElementById('error-message');
-                    
-                    if (data.success && data.user) {
-                        const user = data.user;
-                        
-                        // 设置头像
-                        const avatar = document.getElementById('user-avatar');
-                        if (user.avatar) {
-                            avatar.innerHTML = `<img src="${user.avatar}" alt="${user.handle}" style="width: 100%; height: 100%; border-radius: 50%;">`;
-                        } else {
-                            avatar.textContent = user.handle.charAt(0).toUpperCase();
-                        }
-                        
-                        // 设置基本信息
-                        document.getElementById('user-name').textContent = user.name || user.handle;
-                        document.getElementById('user-rating').textContent = `Rating: ${user.rating}`;
-                        document.getElementById('user-rank').textContent = `段位: ${user.rank}`;
-                        document.getElementById('user-handle-display').textContent = `@${user.handle}`;
-                        
-                        // 设置统计数据
-                        document.getElementById('max-rating').textContent = user.max_rating;
-                        document.getElementById('max-rank').textContent = user.max_rank;
-                        document.getElementById('contribution').textContent = user.contribution;
-                        document.getElementById('registration-time').textContent = user.registration_time.split(' ')[0];
-                        
-                        // 设置详细信息
-                        document.getElementById('info-handle').textContent = user.handle;
-                        document.getElementById('info-email').textContent = user.email;
-                        document.getElementById('info-name').textContent = user.name || '未设置';
-                        document.getElementById('info-country').textContent = user.country || '未设置';
-                        document.getElementById('info-city').textContent = user.city || '未设置';
-                        document.getElementById('info-organization').textContent = user.organization || '未设置';
-                        document.getElementById('info-last-online').textContent = user.last_online_time;
-                        document.getElementById('info-admin').textContent = user.is_admin ? '是' : '否';
-                        
-                        loading.style.display = 'none';
-                        profileContent.style.display = 'block';
-                    } else {
-                        loading.style.display = 'none';
-                        errorMessage.textContent = data.message || '获取用户信息失败';
-                        errorMessage.style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    const loading = document.getElementById('loading');
-                    const errorMessage = document.getElementById('error-message');
-                    loading.style.display = 'none';
-                    errorMessage.textContent = '网络错误，请稍后重试';
-                    errorMessage.style.display = 'block';
-                });
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
         }
 
-        // 登录相关函数
-        function showLogin() {
-            document.getElementById('login-modal').style.display = 'block';
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 5000);
         }
 
-        function hideLogin() {
-            document.getElementById('login-modal').style.display = 'none';
-        }
-
-        async function login() {
-            const handle = document.getElementById('login-handle').value;
-            const password = document.getElementById('login-password').value;
-            
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ handle, password })
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
             });
-            
-            const result = await response.json();
-            alert(result.message);
-            if (result.success) {
-                hideLogin();
-                location.reload();
+            // 移除所有标签的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // 显示选中的标签内容
+            document.getElementById(tabName).classList.add('active');
+            // 激活选中的标签
+            event.target.classList.add('active');
+        }
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/user/current');
+                const result = await response.json();
+
+                if (result.success) {
+                    currentUser = result.user;
+                    displayUserProfile(currentUser);
+                    document.getElementById('profile-content').style.display = 'block';
+                } else {
+                    document.getElementById('login-prompt').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('加载用户资料失败:', error);
+                document.getElementById('login-prompt').style.display = 'block';
             }
         }
 
-        // 登出功能
-        async function logout() {
-            const response = await fetch('/api/logout');
-            const result = await response.json();
-            alert(result.message);
-            if (result.success) {
-                window.location.href = '/';
+        function displayUserProfile(user) {
+            // 更新头像
+            document.getElementById('user-avatar').textContent = user.handle.charAt(0).toUpperCase();
+            if (user.avatar) {
+                document.getElementById('user-avatar').style.backgroundImage = `url(${user.avatar})`;
+                document.getElementById('user-avatar').textContent = '';
             }
+
+            // 更新用户名和评分
+            document.getElementById('user-handle').textContent = user.handle;
+            const ratingElement = document.getElementById('user-rating');
+            ratingElement.textContent = user.rating;
+            ratingElement.className = getRatingClass(user.rating);
+
+            // 更新用户信息
+            const userMeta = document.getElementById('user-meta');
+            userMeta.innerHTML = `
+                <div class="meta-item">
+                    <span class="meta-label">姓名</span>
+                    <span class="meta-value">${user.name || '未设置'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">邮箱</span>
+                    <span class="meta-value">${user.email}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">等级</span>
+                    <span class="meta-value">${user.rank}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">最高评分</span>
+                    <span class="meta-value">${user.max_rating}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">国家</span>
+                    <span class="meta-value">${user.country || '未设置'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">城市</span>
+                    <span class="meta-value">${user.city || '未设置'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">组织</span>
+                    <span class="meta-value">${user.organization || '未设置'}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">注册时间</span>
+                    <span class="meta-value">${formatDate(user.registration_time)}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">最后在线</span>
+                    <span class="meta-value">${formatDate(user.last_online_time)}</span>
+                </div>
+            `;
+
+            // 填充表单
+            document.getElementById('name').value = user.name || '';
+            document.getElementById('country').value = user.country || '';
+            document.getElementById('city').value = user.city || '';
+            document.getElementById('organization').value = user.organization || '';
+            document.getElementById('avatar').value = user.avatar || '';
         }
 
-        // 页面加载时执行
-        document.addEventListener('DOMContentLoaded', function() {
-            checkLoginStatus();
-            loadUserProfile();
+        // 处理个人资料表单提交
+        document.getElementById('profile-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('name').value,
+                country: document.getElementById('country').value,
+                city: document.getElementById('city').value,
+                organization: document.getElementById('organization').value,
+                avatar: document.getElementById('avatar').value
+            };
+
+            try {
+                const response = await fetch('/api/user/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('profile-message', '个人资料更新成功', 'success');
+                    // 重新加载用户资料
+                    loadUserProfile();
+                } else {
+                    showMessage('profile-message', result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('profile-message', '更新失败: ' + error.message, 'error');
+            }
         });
+
+        // 处理密码修改表单提交
+        document.getElementById('password-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const oldPassword = document.getElementById('old-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                showMessage('password-message', '新密码和确认密码不一致', 'error');
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                showMessage('password-message', '新密码长度至少为6位', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/change_password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        old_password: oldPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('password-message', '密码修改成功', 'success');
+                    document.getElementById('password-form').reset();
+                } else {
+                    showMessage('password-message', result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('password-message', '密码修改失败: ' + error.message, 'error');
+            }
+        });
+
+        // 页面加载时获取用户资料
+        document.addEventListener('DOMContentLoaded', loadUserProfile);
     </script>
 </body>
 </html>
