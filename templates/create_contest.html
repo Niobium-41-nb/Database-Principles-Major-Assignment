@@ -11,23 +11,33 @@
         .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
         .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
         .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50; }
         input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
-        textarea { min-height: 100px; resize: vertical; }
-        .btn { background: #3498db; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-right: 0.5rem; }
+        textarea { min-height: 120px; resize: vertical; }
+        .btn { background: #3498db; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem; }
         .btn:hover { background: #2980b9; }
-        .btn-secondary { background: #95a5a6; }
-        .btn-secondary:hover { background: #7f8c8d; }
         .btn-success { background: #27ae60; }
         .btn-success:hover { background: #219a52; }
-        .error { color: #dc3545; font-size: 0.9rem; margin-top: 0.2rem; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .message { padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; }
-        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .btn-secondary { background: #95a5a6; }
+        .btn-secondary:hover { background: #7f8c8d; }
+        .form-section { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .form-section h3 { margin-bottom: 1rem; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 0.5rem; }
+        .problem-item { background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 0.5rem; border: 1px solid #e0e0e0; }
+        .problem-header { display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem; }
+        .problem-actions { display: flex; gap: 0.5rem; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 8px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; }
+        .problem-list { max-height: 400px; overflow-y: auto; margin: 1rem 0; }
+        .problem-option { padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 0.5rem; cursor: pointer; }
+        .problem-option:hover { background: #f8f9fa; }
+        .problem-option.selected { background: #e3f2fd; border-color: #3498db; }
+        .search-box { margin-bottom: 1rem; }
+        .empty-state { text-align: center; padding: 2rem; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -40,31 +50,27 @@
                 <a href="/contests">比赛</a>
                 <a href="/submissions">提交记录</a>
                 <a href="/users">用户</a>
-                <a href="/profile" id="profile-link">个人资料</a>
+                <a href="/profile">个人资料</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
         <div class="card">
-            <div class="header-row">
-                <h2>创建比赛</h2>
-                <a href="/contests" class="btn btn-secondary">返回比赛列表</a>
-            </div>
+            <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">创建新比赛</h2>
 
-            <div id="message-container"></div>
+            <form id="contest-form">
+                <div class="form-section">
+                    <h3>基本信息</h3>
 
-            <form id="create-contest-form">
-                <div class="form-group">
-                    <label for="name">比赛名称 *</label>
-                    <input type="text" id="name" name="name" required>
-                    <div class="error" id="name-error"></div>
-                </div>
-
-                <div class="form-row">
                     <div class="form-group">
-                        <label for="type">比赛类型 *</label>
-                        <select id="type" name="type" required>
+                        <label for="contest-name">比赛名称 *</label>
+                        <input type="text" id="contest-name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contest-type">比赛类型 *</label>
+                        <select id="contest-type" name="type" required>
                             <option value="CF">Codeforces式</option>
                             <option value="IOI">IOI式</option>
                             <option value="ICPC">ICPC式</option>
@@ -72,191 +78,292 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="phase">比赛阶段 *</label>
-                        <select id="phase" name="phase" required>
+                        <label for="contest-phase">比赛阶段</label>
+                        <select id="contest-phase" name="phase">
                             <option value="BEFORE">未开始</option>
                             <option value="CODING">进行中</option>
                             <option value="FINISHED">已结束</option>
                         </select>
                     </div>
-                </div>
 
-                <div class="form-row">
                     <div class="form-group">
-                        <label for="start_time">开始时间 *</label>
-                        <input type="datetime-local" id="start_time" name="start_time" required>
-                        <div class="error" id="start_time-error"></div>
+                        <label for="start-time">开始时间 *</label>
+                        <input type="datetime-local" id="start-time" name="start_time" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="duration_hours">持续时间 *</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="number" id="duration_hours" placeholder="小时" min="0" value="2" style="flex: 1;">
-                            <input type="number" id="duration_minutes" placeholder="分钟" min="0" max="59" value="0" style="flex: 1;">
-                        </div>
-                        <div class="error" id="duration-error"></div>
+                        <label for="duration">持续时间（秒） *</label>
+                        <input type="number" id="duration" name="duration_seconds" value="7200" min="1800" step="900" required>
+                        <small style="color: #666; font-size: 0.875rem;">例如：7200秒 = 2小时</small>
                     </div>
                 </div>
 
-                <div class="form-row">
+                <div class="form-section">
+                    <h3>比赛描述</h3>
+
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <textarea id="description" name="description" placeholder="输入比赛描述..."></textarea>
+                    </div>
+
                     <div class="form-group">
                         <label for="difficulty">难度评级</label>
-                        <input type="number" id="difficulty" name="difficulty" min="0" max="5000" placeholder="例如: 1500">
+                        <input type="number" id="difficulty" name="difficulty" min="0" max="10" step="1">
                     </div>
 
                     <div class="form-group">
                         <label for="kind">比赛种类</label>
-                        <select id="kind" name="kind">
-                            <option value="">请选择</option>
-                            <option value="CF">Codeforces Round</option>
-                            <option value="ICPC">ICPC Contest</option>
-                            <option value="IOI">IOI Contest</option>
-                            <option value="Training">训练赛</option>
-                            <option value="Weekly">周赛</option>
-                            <option value="Monthly">月赛</option>
-                        </select>
+                        <input type="text" id="kind" name="kind" placeholder="例如：常规比赛、训练赛等">
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="country">国家</label>
-                        <input type="text" id="country" name="country" placeholder="例如: 中国">
-                    </div>
+                <div class="form-section">
+                    <h3>比赛题目</h3>
 
-                    <div class="form-group">
-                        <label for="city">城市</label>
-                        <input type="text" id="city" name="city" placeholder="例如: 北京">
-                    </div>
-                </div>
+                    <div id="contest-problems-selection">
+                        <div style="margin-bottom: 1rem;">
+                            <button type="button" id="add-problem-btn" class="btn btn-secondary">选择题目</button>
+                            <span style="margin-left: 1rem; color: #666;" id="selected-count">已选择 0 个题目</span>
+                        </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="icpc_region">ICPC区域</label>
-                        <input type="text" id="icpc_region" name="icpc_region" placeholder="例如: Asia-East">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="season">赛季</label>
-                        <input type="text" id="season" name="season" placeholder="例如: 2024">
+                        <div id="selected-problems-list" class="empty-state">
+                            尚未选择任何题目
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="description">比赛描述</label>
-                    <textarea id="description" name="description" placeholder="请输入比赛的详细描述..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <button type="submit" class="btn btn-success">创建比赛</button>
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='/contests'">取消</button>
+                <div class="form-group" style="text-align: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-success" style="padding: 1rem 2rem;">创建比赛</button>
+                    <a href="/contests" class="btn btn-secondary" style="margin-left: 1rem;">取消</a>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        let currentUser = null;
+        let selectedProblems = [];
+        let availableProblems = [];
 
-        // 检查当前用户权限
-        async function checkCurrentUser() {
+        // 加载可用的题目
+        async function loadAvailableProblems() {
             try {
-                const response = await fetch('/api/user/current');
+                const response = await fetch('/api/problems');
                 const result = await response.json();
 
-                if (result.success && result.user) {
-                    currentUser = result.user;
-                    if (!currentUser.is_admin) {
-                        alert('只有管理员可以创建比赛');
-                        window.location.href = '/contests';
-                    }
+                if (result.success) {
+                    availableProblems = result.problems;
                 } else {
-                    alert('请先登录');
-                    window.location.href = '/contests';
+                    alert('加载题目列表失败: ' + result.message);
                 }
             } catch (error) {
-                console.error('获取用户信息失败:', error);
-                alert('请先登录');
-                window.location.href = '/contests';
+                alert('加载题目列表时发生错误: ' + error.message);
             }
         }
 
-        function showMessage(message, type) {
-            const container = document.getElementById('message-container');
-            container.innerHTML = `<div class="message ${type}">${message}</div>`;
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
-        }
+        // 显示题目选择模态框
+        function showProblemSelectionModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>选择题目</h3>
+                    <div class="search-box">
+                        <input type="text" id="problem-search" placeholder="搜索题目名称或ID..."
+                               style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="problem-list" id="problem-selection-list">
+                        <!-- 题目列表将通过JavaScript动态加载 -->
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                        <span id="selected-problems-count">已选择 0 个题目</span>
+                        <div>
+                            <button id="confirm-selection" class="btn btn-success">确认选择</button>
+                            <button id="cancel-selection" class="btn btn-secondary" style="margin-left: 0.5rem;">取消</button>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-        function validateForm(data) {
-            const errors = {};
+            document.body.appendChild(modal);
+            displayProblemSelectionList();
 
-            if (!data.name.trim()) {
-                errors.name = '比赛名称不能为空';
-            }
+            // 事件监听器
+            document.getElementById('problem-search').addEventListener('input', function(e) {
+                filterProblems(e.target.value);
+            });
 
-            if (!data.start_time) {
-                errors.start_time = '开始时间不能为空';
-            } else {
-                const startTime = new Date(data.start_time);
-                const now = new Date();
-                if (startTime <= now && data.phase === 'BEFORE') {
-                    errors.start_time = '未开始的比赛开始时间必须晚于当前时间';
-                }
-            }
+            document.getElementById('confirm-selection').addEventListener('click', function() {
+                document.body.removeChild(modal);
+                updateSelectedProblemsDisplay();
+            });
 
-            if (!data.duration_seconds || data.duration_seconds <= 0) {
-                errors.duration = '持续时间必须大于0';
-            }
-
-            return errors;
-        }
-
-        function displayErrors(errors) {
-            // 清除所有错误显示
-            document.querySelectorAll('.error').forEach(el => el.textContent = '');
-
-            // 显示新的错误
-            Object.keys(errors).forEach(field => {
-                const errorElement = document.getElementById(`${field}-error`);
-                if (errorElement) {
-                    errorElement.textContent = errors[field];
-                }
+            document.getElementById('cancel-selection').addEventListener('click', function() {
+                document.body.removeChild(modal);
             });
         }
 
+        // 显示题目选择列表
+        function displayProblemSelectionList(filteredProblems = null) {
+            const container = document.getElementById('problem-selection-list');
+            const problems = filteredProblems || availableProblems;
+
+            if (problems.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无题目</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            problems.forEach(problem => {
+                const isSelected = selectedProblems.some(p => p.problem_id === problem.problem_id);
+
+                const problemDiv = document.createElement('div');
+                problemDiv.className = `problem-option ${isSelected ? 'selected' : ''}`;
+                problemDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''}
+                               onchange="toggleProblemSelection('${problem.problem_id}', this.checked)"
+                               style="width: auto;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold;">${problem.problem_id} - ${problem.title}</div>
+                            <div style="font-size: 0.875rem; color: #666;">
+                                难度: ${problem.difficulty} | 时间限制: ${problem.time_limit}ms | 内存限制: ${Math.floor(problem.memory_limit / 1024)}MB
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(problemDiv);
+            });
+
+            updateSelectionCount();
+        }
+
+        // 过滤题目
+        function filterProblems(searchTerm) {
+            if (!availableProblems) return;
+
+            const filtered = availableProblems.filter(problem =>
+                problem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                problem.problem_id.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            displayProblemSelectionList(filtered);
+        }
+
+        // 切换题目选择
+        function toggleProblemSelection(problemId, isSelected) {
+            const problem = availableProblems.find(p => p.problem_id === problemId);
+
+            if (isSelected) {
+                if (!selectedProblems.some(p => p.problem_id === problemId)) {
+                    selectedProblems.push({
+                        ...problem,
+                        index: String.fromCharCode(65 + selectedProblems.length) // A, B, C, ...
+                    });
+                }
+            } else {
+                selectedProblems = selectedProblems.filter(p => p.problem_id !== problemId);
+                // 重新分配索引
+                selectedProblems.forEach((problem, index) => {
+                    problem.index = String.fromCharCode(65 + index);
+                });
+            }
+
+            displayProblemSelectionList();
+            updateSelectionCount();
+        }
+
+        // 更新选择计数
+        function updateSelectionCount() {
+            const countElement = document.getElementById('selected-problems-count');
+            if (countElement) {
+                countElement.textContent = `已选择 ${selectedProblems.length} 个题目`;
+            }
+        }
+
+        // 更新已选择题目的显示
+        function updateSelectedProblemsDisplay() {
+            const container = document.getElementById('selected-problems-list');
+            const countElement = document.getElementById('selected-count');
+
+            countElement.textContent = `已选择 ${selectedProblems.length} 个题目`;
+
+            if (selectedProblems.length === 0) {
+                container.innerHTML = '<div class="empty-state">尚未选择任何题目</div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="80">索引</th>
+                            <th width="120">题目ID</th>
+                            <th>标题</th>
+                            <th width="100">难度</th>
+                            <th width="100">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${selectedProblems.map(problem => `
+                            <tr>
+                                <td>
+                                    <input type="text" value="${problem.index}"
+                                           onchange="updateProblemIndex('${problem.problem_id}', this.value)"
+                                           style="width: 40px; text-align: center; padding: 0.25rem; border: 1px solid #ddd; border-radius: 2px;">
+                                </td>
+                                <td>${problem.problem_id}</td>
+                                <td>${problem.title}</td>
+                                <td>${problem.difficulty}</td>
+                                <td>
+                                    <button type="button" onclick="removeSelectedProblem('${problem.problem_id}')"
+                                            class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                                        移除
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // 更新题目索引
+        function updateProblemIndex(problemId, newIndex) {
+            const problem = selectedProblems.find(p => p.problem_id === problemId);
+            if (problem) {
+                problem.index = newIndex;
+            }
+        }
+
+        // 移除已选择的题目
+        function removeSelectedProblem(problemId) {
+            selectedProblems = selectedProblems.filter(p => p.problem_id !== problemId);
+            // 重新分配索引
+            selectedProblems.forEach((problem, index) => {
+                problem.index = String.fromCharCode(65 + index);
+            });
+            updateSelectedProblemsDisplay();
+        }
+
         // 处理表单提交
-        document.getElementById('create-contest-form').addEventListener('submit', async function(e) {
+        document.getElementById('contest-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // 计算持续时间（秒）
-            const hours = parseInt(document.getElementById('duration_hours').value) || 0;
-            const minutes = parseInt(document.getElementById('duration_minutes').value) || 0;
-            const duration_seconds = hours * 3600 + minutes * 60;
-
-            // 获取并格式化日期时间
-            const startTimeInput = document.getElementById('start_time').value;
-
-            const formData = {
-                name: document.getElementById('name').value,
-                type: document.getElementById('type').value,
-                phase: document.getElementById('phase').value,
-                start_time: startTimeInput,  // 保持原格式，在后端处理
-                duration_seconds: duration_seconds,
-                description: document.getElementById('description').value,
-                difficulty: document.getElementById('difficulty').value ? parseInt(document.getElementById('difficulty').value) : 0,
-                kind: document.getElementById('kind').value,
-                icpc_region: document.getElementById('icpc_region').value,
-                country: document.getElementById('country').value,
-                city: document.getElementById('city').value,
-                season: document.getElementById('season').value
+            const formData = new FormData(this);
+            const contestData = {
+                name: formData.get('name'),
+                type: formData.get('type'),
+                phase: formData.get('phase'),
+                start_time: formData.get('start_time'),
+                duration_seconds: parseInt(formData.get('duration_seconds')),
+                description: formData.get('description'),
+                difficulty: formData.get('difficulty') ? parseInt(formData.get('difficulty')) : 0,
+                kind: formData.get('kind')
             };
 
-            // 验证表单
-            const errors = validateForm(formData);
-            if (Object.keys(errors).length > 0) {
-                displayErrors(errors);
+            // 验证必填字段
+            if (!contestData.name || !contestData.start_time || !contestData.duration_seconds) {
+                alert('请填写所有必填字段');
                 return;
             }
 
@@ -266,42 +373,72 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(contestData)
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    showMessage(`比赛创建成功！比赛ID: ${result.contest_id}`, 'success');
-                    // 清空表单
-                    document.getElementById('create-contest-form').reset();
-                    // 重置持续时间输入和开始时间
-                    document.getElementById('duration_hours').value = '2';
-                    document.getElementById('duration_minutes').value = '0';
-                    setDefaultStartTime(); // 重新设置默认开始时间
+                    alert('比赛创建成功！');
+                    // 如果有选择的题目，添加到比赛
+                    if (selectedProblems.length > 0) {
+                        await addProblemsToContest(result.contest_id);
+                    }
+                    window.location.href = `/contest/${result.contest_id}`;
                 } else {
-                    showMessage('创建失败: ' + result.message, 'error');
+                    alert('创建比赛失败: ' + result.message);
                 }
             } catch (error) {
-                showMessage('创建失败: ' + error.message, 'error');
+                alert('创建比赛时发生错误: ' + error.message);
             }
         });
 
-        // 设置默认开始时间为当前时间+1小时
+        // 添加题目到新创建的比赛
+        async function addProblemsToContest(contestId) {
+            for (const problem of selectedProblems) {
+                try {
+                    const response = await fetch(`/api/contest/${contestId}/add_problem`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            problem_id: problem.problem_id,
+                            problem_index: problem.index
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (!result.success) {
+                        console.error(`添加题目 ${problem.problem_id} 失败:`, result.message);
+                    }
+                } catch (error) {
+                    console.error(`添加题目 ${problem.problem_id} 时发生错误:`, error);
+                }
+            }
+        }
+
+        // 设置默认开始时间（当前时间+1小时）
         function setDefaultStartTime() {
             const now = new Date();
             now.setHours(now.getHours() + 1);
             now.setMinutes(0);
             now.setSeconds(0);
 
-            const localDateTime = now.toISOString().slice(0, 16);
-            document.getElementById('start_time').value = localDateTime;
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            document.getElementById('start-time').value = `${year}-${month}-${day}T${hours}:${minutes}`;
         }
 
-        // 页面加载时执行
+        // 初始化
         document.addEventListener('DOMContentLoaded', function() {
-            checkCurrentUser();
+            loadAvailableProblems();
             setDefaultStartTime();
+            document.getElementById('add-problem-btn').addEventListener('click', showProblemSelectionModal);
         });
     </script>
 </body>

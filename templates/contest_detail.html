@@ -30,6 +30,8 @@
         .btn-secondary:hover { background: #7f8c8d; }
         .btn-success { background: #27ae60; }
         .btn-success:hover { background: #219a52; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
         .phase-before { color: #e67e22; font-weight: bold; }
         .phase-coding { color: #27ae60; font-weight: bold; }
         .phase-finished { color: #7f8c8d; font-weight: bold; }
@@ -41,6 +43,8 @@
         .countdown-timer { font-size: 1.5rem; font-weight: bold; color: #e74c3c; }
         .description-content { line-height: 1.6; margin-bottom: 1rem; }
         .empty-state { text-align: center; padding: 2rem; color: #666; }
+        .admin-actions { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+        .form-section { background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -85,6 +89,58 @@
 
                 <div id="contest-description">
                     <!-- 比赛描述将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- 管理员面板 -->
+            <div id="admin-panel" class="card" style="display: none;">
+                <h2 class="section-title">题目管理</h2>
+
+                <div class="admin-actions">
+                    <button id="manage-problems-btn" class="btn btn-primary">管理题目</button>
+                    <button id="refresh-problems-btn" class="btn btn-secondary">刷新题目列表</button>
+                </div>
+
+                <!-- 添加题目表单 -->
+                <div id="add-problem-form" style="display: none; background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <h3>添加题目到比赛</h3>
+                    <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: end;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.25rem; font-weight: bold;">选择题目</label>
+                            <select id="problem-select" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="">请选择题目</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.25rem; font-weight: bold;">题目索引</label>
+                            <input type="text" id="problem-index" placeholder="A"
+                                   style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 80px;"
+                                   maxlength="2" value="A">
+                        </div>
+                        <div>
+                            <button id="add-problem-btn" class="btn btn-success">添加</button>
+                            <button id="cancel-add-btn" class="btn btn-secondary">取消</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 当前比赛题目列表 -->
+                <div id="contest-problems-admin">
+                    <h3>当前比赛题目</h3>
+                    <table class="problems-table">
+                        <thead>
+                            <tr>
+                                <th width="80">索引</th>
+                                <th width="100">题目ID</th>
+                                <th>标题</th>
+                                <th width="100">难度</th>
+                                <th width="100">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-problems-table-body">
+                            <!-- 管理员视角的题目列表 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -361,6 +417,189 @@
             }
         }
 
+        // 检查管理员权限并显示管理面板
+        async function checkAdminPermission() {
+            try {
+                const response = await fetch('/api/user/current');
+                const result = await response.json();
+
+                if (result.success && result.user && result.user.is_admin) {
+                    document.getElementById('admin-panel').style.display = 'block';
+                    loadAvailableProblems();
+                }
+            } catch (error) {
+                console.error('检查管理员权限失败:', error);
+            }
+        }
+
+        // 加载可用的题目列表
+        async function loadAvailableProblems() {
+            try {
+                const response = await fetch(`/api/contest/${contestId}/available_problems`);
+                const result = await response.json();
+
+                if (result.success) {
+                    displayAvailableProblems(result.problems);
+                } else {
+                    console.error('加载可用题目失败:', result.message);
+                displayAvailableProblems([]);
+                document.getElementById('admin-problems-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            加载题目失败: ${result.message}
+                        </td>
+                    </tr>
+                `;
+                }
+            } catch (error) {
+                console.error('加载可用题目时发生错误:', error);
+                displayAvailableProblems([]);
+                document.getElementById('admin-problems-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            加载题目时发生错误
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // 显示可用的题目列表
+        function displayAvailableProblems(problems) {
+            const select = document.getElementById('problem-select');
+            select.innerHTML = '<option value="">请选择题目</option>';
+
+            problems.forEach(problem => {
+                const option = document.createElement('option');
+                option.value = problem.problem_id;
+                option.textContent = `${problem.problem_id} - ${problem.title} (${problem.difficulty})`;
+                option.disabled = problem.in_contest; // 已在比赛中的题目禁用
+                if (problem.in_contest) {
+                    option.textContent += ' [已在比赛中]';
+                }
+                select.appendChild(option);
+            });
+
+            // 更新管理员视角的题目列表
+            const adminTbody = document.getElementById('admin-problems-table-body');
+            const contestProblems = problems.filter(p => p.in_contest);
+
+            if (contestProblems.length === 0) {
+                adminTbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            暂无题目，请添加题目到比赛
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            adminTbody.innerHTML = '';
+            contestProblems.forEach(problem => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${problem.problem_index || 'A'}</td>
+                    <td>${problem.problem_id}</td>
+                    <td>
+                        <a href="/problem/${problem.problem_id}" class="problem-link">
+                            ${problem.title}
+                        </a>
+                    </td>
+                    <td class="${getDifficultyClass(problem.difficulty)}">
+                        ${problem.difficulty || '简单'}
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" onclick="removeProblemFromContest('${problem.problem_id}')">
+                            移除
+                        </button>
+                    </td>
+                `;
+                adminTbody.appendChild(row);
+            });
+        }
+
+        // 添加题目到比赛
+        async function addProblemToContest() {
+            const problemId = document.getElementById('problem-select').value;
+            const problemIndex = document.getElementById('problem-index').value.trim();
+
+            if (!problemId) {
+                alert('请选择题目');
+                return;
+            }
+
+            if (!problemIndex) {
+                alert('请输入题目索引');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/contest/${contestId}/add_problem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        problem_id: problemId,
+                        problem_index: problemIndex
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('题目添加成功');
+                    // 刷新题目列表
+                    loadAvailableProblems();
+                    loadContestProblems(); // 刷新普通用户看到的题目列表
+                    // 隐藏添加表单
+                    document.getElementById('add-problem-form').style.display = 'none';
+                    // 重置表单
+                    document.getElementById('problem-select').value = '';
+                    document.getElementById('problem-index').value = 'A';
+                } else {
+                    alert('添加题目失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('添加题目失败:', error);
+                alert('添加题目失败，请检查网络连接');
+            }
+        }
+
+        // 从比赛中移除题目
+        async function removeProblemFromContest(problemId) {
+            if (!confirm('确定要从比赛中移除这个题目吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/contest/${contestId}/remove_problem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        problem_id: problemId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('题目移除成功');
+                    // 刷新题目列表
+                    loadAvailableProblems();
+                    loadContestProblems(); // 刷新普通用户看到的题目列表
+                } else {
+                    alert('移除题目失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('移除题目失败:', error);
+                alert('移除题目失败，请检查网络连接');
+            }
+        }
+
         // 报名参赛
         document.getElementById('register-btn').addEventListener('click', function() {
             if (confirm('确定要报名参加这个比赛吗？')) {
@@ -423,6 +662,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             checkLoginStatus();
             loadContestDetail();
+            checkAdminPermission();
         });
 
         // 页面卸载时清理定时器
@@ -430,6 +670,24 @@
             if (countdownInterval) {
                 clearInterval(countdownInterval);
             }
+        });
+
+        // 添加事件监听器
+        document.getElementById('manage-problems-btn').addEventListener('click', function() {
+            const form = document.getElementById('add-problem-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('refresh-problems-btn').addEventListener('click', function() {
+            loadAvailableProblems();
+        });
+
+        document.getElementById('add-problem-btn').addEventListener('click', addProblemToContest);
+
+        document.getElementById('cancel-add-btn').addEventListener('click', function() {
+            document.getElementById('add-problem-form').style.display = 'none';
+            document.getElementById('problem-select').value = '';
+            document.getElementById('problem-index').value = 'A';
         });
     </script>
 </body>

@@ -1033,5 +1033,164 @@ def get_contest_problems(contest_id):
         if 'conn' in locals():
             conn.close()
 
+@app.route('/api/contest/<contest_id>/add_problem', methods=['POST'])
+def add_problem_to_contest(contest_id):
+    """添加题目到比赛"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    # 检查是否是管理员
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以管理比赛题目'})
+
+    data = request.json
+    problem_id = data.get('problem_id')
+    problem_index = data.get('problem_index', 'A')  # 默认题目索引为A
+
+    if not problem_id:
+        return jsonify({'success': False, 'message': '题目ID不能为空'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 检查比赛是否存在
+        cursor.execute("SELECT contest_id FROM CONTEST WHERE contest_id = ?", (contest_id,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': '比赛不存在'})
+
+        # 检查题目是否存在
+        cursor.execute("SELECT problem_id, title FROM PROBLEM WHERE problem_id = ? AND is_visible = 1", (problem_id,))
+        problem = cursor.fetchone()
+        if not problem:
+            return jsonify({'success': False, 'message': '题目不存在'})
+
+        # 检查题目是否已经在比赛中
+        cursor.execute("""
+            SELECT problem_id FROM PROBLEM 
+            WHERE contest_id = ? AND problem_id = ?
+        """, (contest_id, problem_id))
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': '题目已在此比赛中'})
+
+        # 更新题目的比赛信息
+        cursor.execute("""
+            UPDATE PROBLEM 
+            SET contest_id = ?, problem_index = ?
+            WHERE problem_id = ?
+        """, (contest_id, problem_index, problem_id))
+
+        conn.commit()
+        return jsonify({
+            'success': True,
+            'message': '题目添加成功',
+            'problem': {
+                'problem_id': problem_id,
+                'title': problem[1],
+                'index': problem_index
+            }
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'添加题目失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/contest/<contest_id>/remove_problem', methods=['POST'])
+def remove_problem_from_contest(contest_id):
+    """从比赛中移除题目"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    # 检查是否是管理员
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以管理比赛题目'})
+
+    data = request.json
+    problem_id = data.get('problem_id')
+
+    if not problem_id:
+        return jsonify({'success': False, 'message': '题目ID不能为空'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 检查题目是否在比赛中
+        cursor.execute("""
+            SELECT problem_id FROM PROBLEM 
+            WHERE contest_id = ? AND problem_id = ?
+        """, (contest_id, problem_id))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': '题目不在此比赛中'})
+
+        # 移除题目的比赛关联
+        cursor.execute("""
+            UPDATE PROBLEM 
+            SET contest_id = NULL, problem_index = NULL
+            WHERE problem_id = ?
+        """, (problem_id,))
+
+        conn.commit()
+        return jsonify({'success': True, 'message': '题目移除成功'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'移除题目失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/contest/<contest_id>/available_problems')
+def get_available_problems(contest_id):
+    """获取可添加到比赛的题目列表（未在任何比赛中或仅在此比赛中的题目）"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    # 检查是否是管理员
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以管理比赛题目'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 获取所有可见的题目，包括不在任何比赛中的和在此比赛中的
+        cursor.execute("""
+            SELECT problem_id, title, difficulty, time_limit_ms, memory_limit_kb,
+                   contest_id, problem_index
+            FROM PROBLEM 
+            WHERE is_visible = 1 AND (contest_id IS NULL OR contest_id = ?)
+            ORDER BY 
+                CASE WHEN contest_id = ? THEN 0 ELSE 1 END,  -- 当前比赛中的题目排在前面
+                problem_id
+        """, (contest_id, contest_id))
+
+        problems = []
+        for row in cursor.fetchall():
+            problems.append({
+                'problem_id': row[0],
+                'title': row[1],
+                'difficulty': row[2],
+                'time_limit': row[3],
+                'memory_limit': row[4],
+                'in_contest': row[5] == int(contest_id) if row[5] else False,
+                'problem_index': row[6]
+            })
+
+        return jsonify({'success': True, 'problems': problems})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'获取题目列表失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
