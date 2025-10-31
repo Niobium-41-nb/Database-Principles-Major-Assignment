@@ -50,7 +50,10 @@
 
     <div class="container">
         <div class="card">
-            <h2>比赛列表</h2>
+            <div class="header-row">
+                <h2>比赛列表</h2>
+                <a href="/create-contest" class="btn btn-success" id="create-contest-btn" style="display: none;">创建比赛</a>
+            </div>
             <div id="contests-list" class="contest-list">
                 <!-- 比赛数据将通过JavaScript动态加载 -->
             </div>
@@ -91,6 +94,19 @@
             const hours = Math.floor(seconds / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
             return `${hours}小时${minutes}分钟`;
+        }
+
+        async function checkAdminPermission() {
+            try {
+                const response = await fetch('/api/user/current');
+                const result = await response.json();
+
+                if (result.success && result.user && result.user.is_admin) {
+                    document.getElementById('create-contest-btn').style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('检查管理员权限失败:', error);
+            }
         }
 
         async function loadContests() {
@@ -187,7 +203,12 @@
             // 这里可以添加进入比赛逻辑
             alert('进入比赛！');
         }
-        
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminPermission();
+            loadContests();
+        });
+
         // 页面加载时获取比赛列表
         document.addEventListener('DOMContentLoaded', loadContests);
     </script>

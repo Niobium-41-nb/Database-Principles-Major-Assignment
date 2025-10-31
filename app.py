@@ -857,5 +857,83 @@ def set_admin():
         if 'conn' in locals():
             conn.close()
 
+
+@app.route('/create-contest')
+def create_contest_page():
+    """比赛创建页面"""
+    return render_template('create_contest.html')
+
+
+@app.route('/api/contests/create', methods=['POST'])
+def create_contest():
+    """创建比赛"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+
+    # 检查是否是管理员
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以创建比赛'})
+
+    data = request.json
+
+    required_fields = ['name', 'start_time', 'duration_seconds']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'success': False, 'message': f'字段 {field} 不能为空'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # 处理日期时间格式
+        start_time_str = data['start_time']
+        try:
+            # 将前端传来的 datetime-local 格式转换为 SQL Server 可识别的格式
+            # 前端格式: "YYYY-MM-DDTHH:MM"
+            # 转换为: "YYYY-MM-DD HH:MM:SS"
+            if 'T' in start_time_str:
+                start_time_str = start_time_str.replace('T', ' ') + ':00'
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'日期时间格式错误: {str(e)}'})
+
+        # 插入比赛信息
+        cursor.execute("""
+            INSERT INTO CONTEST (
+                name, type, phase, start_time, duration_seconds, 
+                description, difficulty, kind, icpc_region, country, city, season, created_by
+            ) VALUES (?, ?, ?, CONVERT(DATETIME2, ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            data['name'],
+            data.get('type', 'CF'),
+            data.get('phase', 'BEFORE'),
+            start_time_str,  # 使用转换后的日期时间字符串
+            data['duration_seconds'],
+            data.get('description', ''),
+            data.get('difficulty', 0),
+            data.get('kind', ''),
+            data.get('icpc_region', ''),
+            data.get('country', ''),
+            data.get('city', ''),
+            data.get('season', ''),
+            session['user_id']
+        ))
+
+        contest_id = cursor.execute("SELECT @@IDENTITY").fetchone()[0]
+
+        conn.commit()
+        return jsonify({
+            'success': True,
+            'message': '比赛创建成功',
+            'contest_id': contest_id
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'创建比赛失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

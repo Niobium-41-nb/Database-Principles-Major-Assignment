@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建比赛 - 在线判题系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem; }
+        .nav-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1rem; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        textarea { min-height: 100px; resize: vertical; }
+        .btn { background: #3498db; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-right: 0.5rem; }
+        .btn:hover { background: #2980b9; }
+        .btn-secondary { background: #95a5a6; }
+        .btn-secondary:hover { background: #7f8c8d; }
+        .btn-success { background: #27ae60; }
+        .btn-success:hover { background: #219a52; }
+        .error { color: #dc3545; font-size: 0.9rem; margin-top: 0.2rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .message { padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile" id="profile-link">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="header-row">
+                <h2>创建比赛</h2>
+                <a href="/contests" class="btn btn-secondary">返回比赛列表</a>
+            </div>
+
+            <div id="message-container"></div>
+
+            <form id="create-contest-form">
+                <div class="form-group">
+                    <label for="name">比赛名称 *</label>
+                    <input type="text" id="name" name="name" required>
+                    <div class="error" id="name-error"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">比赛类型 *</label>
+                        <select id="type" name="type" required>
+                            <option value="CF">Codeforces式</option>
+                            <option value="IOI">IOI式</option>
+                            <option value="ICPC">ICPC式</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phase">比赛阶段 *</label>
+                        <select id="phase" name="phase" required>
+                            <option value="BEFORE">未开始</option>
+                            <option value="CODING">进行中</option>
+                            <option value="FINISHED">已结束</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_time">开始时间 *</label>
+                        <input type="datetime-local" id="start_time" name="start_time" required>
+                        <div class="error" id="start_time-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration_hours">持续时间 *</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" id="duration_hours" placeholder="小时" min="0" value="2" style="flex: 1;">
+                            <input type="number" id="duration_minutes" placeholder="分钟" min="0" max="59" value="0" style="flex: 1;">
+                        </div>
+                        <div class="error" id="duration-error"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="difficulty">难度评级</label>
+                        <input type="number" id="difficulty" name="difficulty" min="0" max="5000" placeholder="例如: 1500">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kind">比赛种类</label>
+                        <select id="kind" name="kind">
+                            <option value="">请选择</option>
+                            <option value="CF">Codeforces Round</option>
+                            <option value="ICPC">ICPC Contest</option>
+                            <option value="IOI">IOI Contest</option>
+                            <option value="Training">训练赛</option>
+                            <option value="Weekly">周赛</option>
+                            <option value="Monthly">月赛</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="country">国家</label>
+                        <input type="text" id="country" name="country" placeholder="例如: 中国">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">城市</label>
+                        <input type="text" id="city" name="city" placeholder="例如: 北京">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="icpc_region">ICPC区域</label>
+                        <input type="text" id="icpc_region" name="icpc_region" placeholder="例如: Asia-East">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="season">赛季</label>
+                        <input type="text" id="season" name="season" placeholder="例如: 2024">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">比赛描述</label>
+                    <textarea id="description" name="description" placeholder="请输入比赛的详细描述..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">创建比赛</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='/contests'">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // 检查当前用户权限
+        async function checkCurrentUser() {
+            try {
+                const response = await fetch('/api/user/current');
+                const result = await response.json();
+
+                if (result.success && result.user) {
+                    currentUser = result.user;
+                    if (!currentUser.is_admin) {
+                        alert('只有管理员可以创建比赛');
+                        window.location.href = '/contests';
+                    }
+                } else {
+                    alert('请先登录');
+                    window.location.href = '/contests';
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+                alert('请先登录');
+                window.location.href = '/contests';
+            }
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `<div class="message ${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function validateForm(data) {
+            const errors = {};
+
+            if (!data.name.trim()) {
+                errors.name = '比赛名称不能为空';
+            }
+
+            if (!data.start_time) {
+                errors.start_time = '开始时间不能为空';
+            } else {
+                const startTime = new Date(data.start_time);
+                const now = new Date();
+                if (startTime <= now && data.phase === 'BEFORE') {
+                    errors.start_time = '未开始的比赛开始时间必须晚于当前时间';
+                }
+            }
+
+            if (!data.duration_seconds || data.duration_seconds <= 0) {
+                errors.duration = '持续时间必须大于0';
+            }
+
+            return errors;
+        }
+
+        function displayErrors(errors) {
+            // 清除所有错误显示
+            document.querySelectorAll('.error').forEach(el => el.textContent = '');
+
+            // 显示新的错误
+            Object.keys(errors).forEach(field => {
+                const errorElement = document.getElementById(`${field}-error`);
+                if (errorElement) {
+                    errorElement.textContent = errors[field];
+                }
+            });
+        }
+
+        // 处理表单提交
+        document.getElementById('create-contest-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // 计算持续时间（秒）
+            const hours = parseInt(document.getElementById('duration_hours').value) || 0;
+            const minutes = parseInt(document.getElementById('duration_minutes').value) || 0;
+            const duration_seconds = hours * 3600 + minutes * 60;
+
+            // 获取并格式化日期时间
+            const startTimeInput = document.getElementById('start_time').value;
+
+            const formData = {
+                name: document.getElementById('name').value,
+                type: document.getElementById('type').value,
+                phase: document.getElementById('phase').value,
+                start_time: startTimeInput,  // 保持原格式，在后端处理
+                duration_seconds: duration_seconds,
+                description: document.getElementById('description').value,
+                difficulty: document.getElementById('difficulty').value ? parseInt(document.getElementById('difficulty').value) : 0,
+                kind: document.getElementById('kind').value,
+                icpc_region: document.getElementById('icpc_region').value,
+                country: document.getElementById('country').value,
+                city: document.getElementById('city').value,
+                season: document.getElementById('season').value
+            };
+
+            // 验证表单
+            const errors = validateForm(formData);
+            if (Object.keys(errors).length > 0) {
+                displayErrors(errors);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/contests/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage(`比赛创建成功！比赛ID: ${result.contest_id}`, 'success');
+                    // 清空表单
+                    document.getElementById('create-contest-form').reset();
+                    // 重置持续时间输入和开始时间
+                    document.getElementById('duration_hours').value = '2';
+                    document.getElementById('duration_minutes').value = '0';
+                    setDefaultStartTime(); // 重新设置默认开始时间
+                } else {
+                    showMessage('创建失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('创建失败: ' + error.message, 'error');
+            }
+        });
+
+        // 设置默认开始时间为当前时间+1小时
+        function setDefaultStartTime() {
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+            now.setSeconds(0);
+
+            const localDateTime = now.toISOString().slice(0, 16);
+            document.getElementById('start_time').value = localDateTime;
+        }
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCurrentUser();
+            setDefaultStartTime();
+        });
+    </script>
+</body>
+</html>
