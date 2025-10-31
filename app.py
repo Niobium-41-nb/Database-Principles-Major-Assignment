@@ -153,6 +153,14 @@ def logout():
     session.clear()
     return jsonify({'success': True, 'message': '登出成功'})
 
+@app.route('/problem/<problem_id>')
+def problem_detail(problem_id):
+    """题目详情页面"""
+    # 传递一些基本变量给模板，避免模板渲染错误
+    return render_template('problem_detail.html',
+                         problem={'title': '加载中...', 'difficulty': '简单'},
+                         difficulty_color='secondary')
+
 @app.route('/api/problems')
 def get_problems():
     """获取题目列表"""
@@ -192,27 +200,29 @@ def get_problems():
         if 'conn' in locals():
             conn.close()
 
+
 @app.route('/api/problem/<problem_id>')
 def get_problem_detail(problem_id):
     """获取题目详情"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        
+
         # 获取题目基本信息
         cursor.execute("""
             SELECT p.problem_id, p.title, p.statement, p.input_specification, 
                    p.output_specification, p.sample_tests, p.time_limit_ms, 
-                   p.memory_limit_kb, p.difficulty, c.name as contest_name
+                   p.memory_limit_kb, p.difficulty, p.accepted_count, p.submission_count,
+                   c.name as contest_name
             FROM PROBLEM p
             LEFT JOIN CONTEST c ON p.contest_id = c.contest_id
             WHERE p.problem_id = ? AND p.is_visible = 1
         """, (problem_id,))
-        
+
         problem = cursor.fetchone()
         if not problem:
             return jsonify({'success': False, 'message': '题目不存在'})
-        
+
         # 获取题目标签
         cursor.execute("""
             SELECT t.name 
@@ -220,25 +230,36 @@ def get_problem_detail(problem_id):
             INNER JOIN PROBLEM_TAG_RELATION r ON t.tag_id = r.tag_id
             WHERE r.problem_id = ?
         """, (problem_id,))
-        
+
         tags = [row[0] for row in cursor.fetchall()]
-        
+
+        # 解析样例数据
+        sample_tests = []
+        if problem[5]:  # sample_tests 字段
+            try:
+                sample_tests = json.loads(problem[5])
+            except:
+                # 如果解析失败，使用默认样例
+                sample_tests = [{"input": "1 2", "output": "3"}]
+
         problem_data = {
             'problem_id': problem[0],
             'title': problem[1],
             'statement': problem[2],
             'input_specification': problem[3],
             'output_specification': problem[4],
-            'sample_tests': problem[5],
+            'sample_tests': sample_tests,
             'time_limit': problem[6],
             'memory_limit': problem[7],
             'difficulty': problem[8],
-            'contest_name': problem[9],
+            'accepted_count': problem[9],
+            'submission_count': problem[10],
+            'contest_name': problem[11],
             'tags': tags
         }
-        
+
         return jsonify({'success': True, 'problem': problem_data})
-        
+
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取题目详情失败: {str(e)}'})
     finally:

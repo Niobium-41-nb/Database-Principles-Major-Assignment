@@ -18,6 +18,8 @@
         .difficulty-easy { color: #28a745; }
         .difficulty-medium { color: #ffc107; }
         .difficulty-hard { color: #dc3545; }
+        .problem-link { color: #3498db; text-decoration: none; font-weight: 500; }
+        .problem-link:hover { color: #2980b9; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -79,13 +81,26 @@
         </div>
     </div>
 
+    <!-- 注册模态框 -->
+    <div id="register-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div style="background: white; width: 300px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+            <h3>注册</h3>
+            <input type="text" id="register-handle" placeholder="用户名" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="email" id="register-email" placeholder="邮箱" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="text" id="register-name" placeholder="姓名（可选）" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="password" id="register-password" placeholder="密码" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <button onclick="register()" class="btn">注册</button>
+            <button onclick="hideRegister()" class="btn" style="background: #95a5a6;">取消</button>
+        </div>
+    </div>
+
     <script>
         // 检查登录状态
         function checkLoginStatus() {
             const userInfo = document.getElementById('user-info');
             const guestButtons = document.getElementById('guest-buttons');
             const userHandle = document.getElementById('user-handle');
-            
+
             fetch('/api/user/current')
                 .then(response => response.json())
                 .then(data => {
@@ -113,31 +128,91 @@
             document.getElementById('login-modal').style.display = 'none';
         }
 
+        function showRegister() {
+            document.getElementById('register-modal').style.display = 'block';
+        }
+
+        function hideRegister() {
+            document.getElementById('register-modal').style.display = 'none';
+        }
+
         async function login() {
             const handle = document.getElementById('login-handle').value;
             const password = document.getElementById('login-password').value;
-            
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ handle, password })
-            });
-            
-            const result = await response.json();
-            alert(result.message);
-            if (result.success) {
-                hideLogin();
-                location.reload();
+
+            if (!handle || !password) {
+                alert('请填写用户名和密码');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ handle, password })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    hideLogin();
+                    location.reload();
+                }
+            } catch (error) {
+                alert('登录失败: ' + error.message);
+            }
+        }
+
+        async function register() {
+            const handle = document.getElementById('register-handle').value;
+            const email = document.getElementById('register-email').value;
+            const name = document.getElementById('register-name').value;
+            const password = document.getElementById('register-password').value;
+
+            if (!handle || !email || !password) {
+                alert('请填写必填信息');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ handle, email, name, password })
+                });
+
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    hideRegister();
+                    // 注册成功后自动登录
+                    const loginResponse = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ handle, password })
+                    });
+
+                    const loginResult = await loginResponse.json();
+                    if (loginResult.success) {
+                        location.reload();
+                    }
+                }
+            } catch (error) {
+                alert('注册失败: ' + error.message);
             }
         }
 
         // 登出功能
         async function logout() {
-            const response = await fetch('/api/logout');
-            const result = await response.json();
-            alert(result.message);
-            if (result.success) {
-                location.reload();
+            try {
+                const response = await fetch('/api/logout');
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('登出失败: ' + error.message);
             }
         }
 
@@ -145,21 +220,27 @@
             try {
                 const response = await fetch('/api/problems');
                 const result = await response.json();
-                
+
                 if (result.success) {
                     const tbody = document.getElementById('problems-table-body');
                     tbody.innerHTML = '';
-                    
+
                     result.problems.forEach(problem => {
                         const passRate = problem.submission_count > 0
                             ? ((problem.accepted_count / problem.submission_count) * 100).toFixed(1) + '%'
                             : '0%';
-                            
+
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${problem.problem_id}</td>
-                            <td><a href="/problem.html?id=${problem.problem_id}">${problem.title}</a></td>
-                            <td class="difficulty-${problem.difficulty?.toLowerCase() || 'easy'}">${problem.difficulty || '简单'}</td>
+                            <td>
+                                <a href="/problem/${problem.problem_id}" class="problem-link">
+                                    ${problem.title}
+                                </a>
+                            </td>
+                            <td class="difficulty-${getDifficultyClass(problem.difficulty)}">
+                                ${problem.difficulty || '简单'}
+                            </td>
                             <td>${problem.accepted_count}/${problem.submission_count} (${passRate})</td>
                             <td>${problem.time_limit}ms</td>
                             <td>${Math.floor(problem.memory_limit / 1024)}MB</td>
@@ -173,7 +254,23 @@
                 alert('加载题目时发生错误: ' + error.message);
             }
         }
-        
+
+        // 辅助函数：根据难度返回对应的CSS类名
+        function getDifficultyClass(difficulty) {
+            if (!difficulty) return 'easy';
+
+            const difficultyMap = {
+                '简单': 'easy',
+                '中等': 'medium',
+                '困难': 'hard',
+                'Easy': 'easy',
+                'Medium': 'medium',
+                'Hard': 'hard'
+            };
+
+            return difficultyMap[difficulty] || 'easy';
+        }
+
         // 页面加载时执行
         document.addEventListener('DOMContentLoaded', function() {
             checkLoginStatus();
