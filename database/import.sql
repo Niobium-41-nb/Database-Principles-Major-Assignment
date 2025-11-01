@@ -96,19 +96,27 @@ VALUES
 ('CF1000B', '100 98', 'YES', 0, 2),
 ('CF1000C', '1', '3', 1, 1),
 ('EDU200A', 'test', 'result', 1, 1);
+GO
+
 -- 7. 插入提交数据、比赛用户关系和Hack数据
 DECLARE @contest1_id BIGINT;
 SELECT @contest1_id = contest_id FROM CONTEST WHERE name = 'Codeforces Round #1000 (Div. 1)';
 
--- 插入提交数据
+-- 插入提交数据（使用新的评测结果格式）
 INSERT INTO SUBMISSION (user_id, problem_id, contest_id, programming_language, source_code, source_length, verdict, time_consumed_ms, memory_consumed_kb, passed_test_count, submission_time, points)
 VALUES 
 ((SELECT user_id FROM Users WHERE handle = 'tourist'), 'CF1000A', @contest1_id, 'GNU C++17', '#include <iostream>
 using namespace std;
-int main() { int w; cin >> w; cout << (w % 2 == 0 && w > 2 ? "YES" : "NO"); return 0; }', 98, 'ACCEPTED', 15, 4000, 4, '2024-01-15 14:05:00', 100),
-((SELECT user_id FROM Users WHERE handle = 'petr'), 'CF1000A', @contest1_id, 'Java 11', 'import java.util.*; public class Main { public static void main(String[] args) { Scanner sc = new Scanner(System.in); int w = sc.nextInt(); System.out.println(w % 2 == 0 && w > 2 ? "YES" : "NO"); } }', 150, 'ACCEPTED', 78, 16384, 4, '2024-01-15 14:06:00', 100),
+int main() { int w; cin >> w; cout << (w % 2 == 0 && w > 2 ? "YES" : "NO"); return 0; }', 98, 'Accepted', 15, 4000, 4, '2024-01-15 14:05:00', 100),
+((SELECT user_id FROM Users WHERE handle = 'petr'), 'CF1000A', @contest1_id, 'Java 11', 'import java.util.*; public class Main { public static void main(String[] args) { Scanner sc = new Scanner(System.in); int w = sc.nextInt(); System.out.println(w % 2 == 0 && w > 2 ? "YES" : "NO"); } }', 150, 'Accepted', 78, 16384, 4, '2024-01-15 14:06:00', 100),
 ((SELECT user_id FROM Users WHERE handle = 'alice'), 'CF1000A', @contest1_id, 'Python 3', 'w = int(input())
-print("YES" if w % 2 == 0 and w > 2 else "NO")', 56, 'WRONG_ANSWER', 30, 8192, 2, '2024-01-15 14:07:00', 0);
+print("YES" if w % 2 == 0 and w > 2 else "NO")', 56, 'Wrong Answer', 30, 8192, 2, '2024-01-15 14:07:00', 0),
+((SELECT user_id FROM Users WHERE handle = 'bob'), 'CF1000A', @contest1_id, 'C++', '#include <iostream>
+int main() { int w; std::cin >> w; if (w == 2) std::cout << "YES"; else std::cout << "NO"; }', 85, 'Time Limit Exceeded', 2000, 512000, 0, '2024-01-15 14:08:00', 0),
+((SELECT user_id FROM Users WHERE handle = 'alice'), 'CF1000B', @contest1_id, 'Python 3', 'print("YES")', 12, 'Runtime Error', 45, 16384, 0, '2024-01-15 14:10:00', 0),
+((SELECT user_id FROM Users WHERE handle = 'bob'), 'CF1000C', @contest1_id, 'Java', 'public class Main { public static void main(String[] args) { } }', 55, 'Compilation Error', 0, 0, 0, '2024-01-15 14:12:00', 0),
+((SELECT user_id FROM Users WHERE handle = 'petr'), 'CF1000B', @contest1_id, 'C++', '#include <bits/stdc++.h>
+using namespace std;', 35, 'Memory Limit Exceeded', 1500, 262144, 3, '2024-01-15 14:15:00', 50);
 
 -- 插入比赛用户关系数据
 INSERT INTO CONTEST_USER (contest_id, user_id, role, rating_before, rating_after, contest_rank, solved_count, total_penalty, scores)
@@ -119,11 +127,11 @@ VALUES
 (@contest1_id, (SELECT user_id FROM Users WHERE handle = 'bob'), 'contestant', 1180, 1200, 300, 1, 600, 800);
 
 -- 插入Hack数据
-
 INSERT INTO HACK (hacker_id, defender_id, problem_id, contest_id, verdict, test_case, hack_result)
 VALUES 
 ((SELECT user_id FROM Users WHERE handle = 'tourist'), (SELECT user_id FROM Users WHERE handle = 'alice'), 'CF1000A', @contest1_id, 'SUCCESSFUL', '7', 'Expected: NO, Received: YES'),
 ((SELECT user_id FROM Users WHERE handle = 'petr'), (SELECT user_id FROM Users WHERE handle = 'bob'), 'CF1000A', @contest1_id, 'UNSUCCESSFUL', '2', 'Expected: NO, Received: NO - Hack failed');
+GO
 
 -- 验证数据插入
 SELECT 'Users: ' + CAST(COUNT(*) AS VARCHAR) FROM Users

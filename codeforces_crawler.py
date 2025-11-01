@@ -380,7 +380,7 @@ class DatabaseManager:
 
         for user_id, handle in users:
             try:
-                submissions = crawler.get_user_submissions(handle, 10)  # 每个用户获取5条记录
+                submissions = crawler.get_user_submissions(handle, 10)  # 每个用户获取10条记录
 
                 for submission in submissions:
                     try:
@@ -396,17 +396,24 @@ class DatabaseManager:
                         if contest_id not in valid_contest_ids:
                             contest_id = None
 
-                        # 映射判决结果
+                        # 映射判决结果到新的格式
                         verdict_map = {
-                            'OK': 'ACCEPTED',
-                            'WRONG_ANSWER': 'WRONG_ANSWER',
-                            'TIME_LIMIT_EXCEEDED': 'TIME_LIMIT_EXCEEDED',
-                            'MEMORY_LIMIT_EXCEEDED': 'MEMORY_LIMIT_EXCEEDED',
-                            'RUNTIME_ERROR': 'RUNTIME_ERROR',
-                            'COMPILATION_ERROR': 'COMPILATION_ERROR'
+                            'OK': 'Accepted',
+                            'WRONG_ANSWER': 'Wrong Answer',
+                            'TIME_LIMIT_EXCEEDED': 'Time Limit Exceeded',
+                            'MEMORY_LIMIT_EXCEEDED': 'Memory Limit Exceeded',
+                            'RUNTIME_ERROR': 'Runtime Error',
+                            'COMPILATION_ERROR': 'Compilation Error',
+                            'PRESENTATION_ERROR': 'Presentation Error',
+                            'FAILED': 'Failed',
+                            'PARTIAL': 'Partial Solution',
+                            'CHALLENGED': 'Challenged',
+                            'SKIPPED': 'Skipped',
+                            'REJECTED': 'Rejected',
+                            'IDLENESS_LIMIT_EXCEEDED': 'Idleness Limit Exceeded'
                         }
 
-                        verdict = verdict_map.get(submission.get('verdict', ''), 'PENDING')
+                        verdict = verdict_map.get(submission.get('verdict', ''), 'Pending')
 
                         self.cursor.execute("""
                             INSERT INTO SUBMISSION (user_id, problem_id, contest_id, 
@@ -478,7 +485,7 @@ def main():
             db_manager.insert_problems(problems[:50000], stats)  # 插入前50个题目
 
         # 4. 插入提交记录
-        # db_manager.insert_submissions(crawler)
+        db_manager.insert_submissions(crawler)
 
         print("=== 数据爬取和插入完成 ===")
 

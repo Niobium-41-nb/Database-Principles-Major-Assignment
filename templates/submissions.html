@@ -17,7 +17,14 @@
         th { background: #f8f9fa; font-weight: bold; }
         .verdict-accepted { color: #28a745; font-weight: bold; }
         .verdict-wrong { color: #dc3545; }
-        .verdict-other { color: #6c757d; }
+        .verdict-time-limit { color: #fd7e14; }
+        .verdict-memory-limit { color: #6f42c1; }
+        .verdict-runtime { color: #e83e8c; }
+        .verdict-compilation { color: #6c757d; }
+        .verdict-other { color: #17a2b8; }
+        .filters { margin-bottom: 1rem; display: flex; gap: 1rem; }
+        .filter-item { display: flex; align-items: center; gap: 0.5rem; }
+        .filter-item select, .filter-item input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -38,6 +45,35 @@
     <div class="container">
         <div class="card">
             <h2>提交记录</h2>
+            
+            <!-- 筛选器 -->
+            <div class="filters">
+                <div class="filter-item">
+                    <label for="user-filter">用户:</label>
+                    <input type="text" id="user-filter" placeholder="用户名">
+                </div>
+                <div class="filter-item">
+                    <label for="problem-filter">题目:</label>
+                    <input type="text" id="problem-filter" placeholder="题目标题">
+                </div>
+                <div class="filter-item">
+                    <label for="verdict-filter">结果:</label>
+                    <select id="verdict-filter">
+                        <option value="">所有结果</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Wrong Answer">Wrong Answer</option>
+                        <option value="Time Limit Exceeded">Time Limit Exceeded</option>
+                        <option value="Memory Limit Exceeded">Memory Limit Exceeded</option>
+                        <option value="Runtime Error">Runtime Error</option>
+                        <option value="Compilation Error">Compilation Error</option>
+                        <option value="Idleness Limit Exceeded">Idleness Limit Exceeded</option>
+                        <option value="Presentation Error">Presentation Error</option>
+                        <option value="Partial Solution">Partial Solution</option>
+                    </select>
+                </div>
+                <button onclick="loadSubmissions()">筛选</button>
+            </div>
+
             <div id="submissions-list">
                 <table>
                     <thead>
@@ -49,6 +85,7 @@
                             <th>结果</th>
                             <th>时间</th>
                             <th>内存</th>
+                            <th>通过测试</th>
                             <th>提交时间</th>
                         </tr>
                     </thead>
@@ -61,18 +98,60 @@
     </div>
 
     <script>
+        function getVerdictClass(verdict) {
+            switch(verdict) {
+                case 'Accepted':
+                    return 'verdict-accepted';
+                case 'Wrong Answer':
+                case 'Presentation Error':
+                    return 'verdict-wrong';
+                case 'Time Limit Exceeded':
+                case 'Idleness Limit Exceeded':
+                    return 'verdict-time-limit';
+                case 'Memory Limit Exceeded':
+                    return 'verdict-memory-limit';
+                case 'Runtime Error':
+                    return 'verdict-runtime';
+                case 'Compilation Error':
+                    return 'verdict-compilation';
+                default:
+                    return 'verdict-other';
+            }
+        }
+
         async function loadSubmissions() {
             try {
-                const response = await fetch('/api/submissions');
+                const userFilter = document.getElementById('user-filter').value;
+                const problemFilter = document.getElementById('problem-filter').value;
+                const verdictFilter = document.getElementById('verdict-filter').value;
+                
+                let url = '/api/submissions';
+                const params = new URLSearchParams();
+                
+                if (userFilter) params.append('user_handle', userFilter);
+                if (problemFilter) params.append('problem_title', problemFilter);
+                if (verdictFilter) params.append('verdict', verdictFilter);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
                 const result = await response.json();
                 
                 if (result.success) {
                     const tbody = document.getElementById('submissions-table-body');
                     tbody.innerHTML = '';
                     
+                    if (result.submissions.length === 0) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="9" style="text-align: center;">暂无提交记录</td>`;
+                        tbody.appendChild(row);
+                        return;
+                    }
+                    
                     result.submissions.forEach(submission => {
-                        const verdictClass = submission.verdict === 'ACCEPTED' ? 'verdict-accepted' : 
-                                           submission.verdict.includes('WRONG') || submission.verdict.includes('ERROR') ? 'verdict-wrong' : 'verdict-other';
+                        const verdictClass = getVerdictClass(submission.verdict);
                         
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -83,6 +162,7 @@
                             <td class="${verdictClass}">${submission.verdict}</td>
                             <td>${submission.time_consumed}ms</td>
                             <td>${Math.floor(submission.memory_consumed / 1024)}MB</td>
+                            <td>${submission.passed_tests || 0}</td>
                             <td>${submission.submission_time}</td>
                         `;
                         tbody.appendChild(row);

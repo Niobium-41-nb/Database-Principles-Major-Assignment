@@ -1,8 +1,19 @@
--- 创建数据库
-CREATE DATABASE OJ;
-GO
 
 USE OJ;
+GO
+
+
+-- 删除原有表（如果存在）
+IF OBJECT_ID('HACK', 'U') IS NOT NULL DROP TABLE HACK;
+IF OBJECT_ID('CONTEST_USER', 'U') IS NOT NULL DROP TABLE CONTEST_USER;
+IF OBJECT_ID('SUBMISSION', 'U') IS NOT NULL DROP TABLE SUBMISSION;
+IF OBJECT_ID('TEST_CASE', 'U') IS NOT NULL DROP TABLE TEST_CASE;
+IF OBJECT_ID('PROBLEM_TAG_RELATION', 'U') IS NOT NULL DROP TABLE PROBLEM_TAG_RELATION;
+IF OBJECT_ID('PROBLEM_TAG', 'U') IS NOT NULL DROP TABLE PROBLEM_TAG;
+IF OBJECT_ID('PROBLEM', 'U') IS NOT NULL DROP TABLE PROBLEM;
+IF OBJECT_ID('CONTEST', 'U') IS NOT NULL DROP TABLE CONTEST;
+IF OBJECT_ID('Users', 'U') IS NOT NULL DROP TABLE Users;
+
 GO
 
 -- 用户表
@@ -131,10 +142,11 @@ CREATE TABLE SUBMISSION (
     programming_language VARCHAR(50) NOT NULL,
     source_code TEXT NOT NULL,
     source_length INT NOT NULL,
-    verdict VARCHAR(30) DEFAULT 'PENDING' CHECK (verdict IN (
-        'PENDING', 'RUNNING', 'ACCEPTED', 'WRONG_ANSWER', 'TIME_LIMIT_EXCEEDED',
-        'MEMORY_LIMIT_EXCEEDED', 'RUNTIME_ERROR', 'COMPILATION_ERROR',
-        'PRESENTATION_ERROR', 'FAILED'
+    verdict VARCHAR(50) DEFAULT 'Pending' CHECK (verdict IN (
+        'Pending', 'Running', 'Accepted', 'Wrong Answer', 'Time Limit Exceeded',
+        'Memory Limit Exceeded', 'Runtime Error', 'Compilation Error',
+        'Presentation Error', 'Failed', 'Idleness Limit Exceeded', 
+        'Partial Solution', 'Skipped', 'Challenged', 'Rejected'
     )),
     time_consumed_ms INT DEFAULT 0,
     memory_consumed_kb INT DEFAULT 0,

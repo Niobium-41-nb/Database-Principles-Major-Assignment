@@ -269,6 +269,7 @@ def get_problem_detail(problem_id):
             conn.close()
 
 @app.route('/api/submit', methods=['POST'])
+@app.route('/api/submit', methods=['POST'])
 def submit_solution():
     """提交代码"""
     if 'user_id' not in session:
@@ -299,9 +300,10 @@ def submit_solution():
         
         submission_id = cursor.execute("SELECT @@IDENTITY").fetchone()[0]
         
-        # 模拟评测过程
-        verdicts = ['ACCEPTED', 'WRONG_ANSWER', 'TIME_LIMIT_EXCEEDED', 'MEMORY_LIMIT_EXCEEDED', 'RUNTIME_ERROR']
-        weights = [40, 30, 10, 10, 10]  # 不同结果的权重
+        # 评测结果和权重
+        verdicts = ['Accepted', 'Wrong Answer', 'Time Limit Exceeded', 'Memory Limit Exceeded', 'Runtime Error',
+                   'Compilation Error', 'Idleness Limit Exceeded', 'Presentation Error', 'Partial Solution']
+        weights = [35, 25, 8, 8, 8, 6, 4, 4, 2]  # 不同结果的权重
         
         verdict = random.choices(verdicts, weights=weights)[0]
         time_consumed = random.randint(0, 2000)
@@ -316,7 +318,7 @@ def submit_solution():
         
         # 更新题目统计信息
         cursor.execute("UPDATE PROBLEM SET submission_count = submission_count + 1 WHERE problem_id = ?", (problem_id,))
-        if verdict == 'ACCEPTED':
+        if verdict == 'Accepted':
             cursor.execute("UPDATE PROBLEM SET accepted_count = accepted_count + 1 WHERE problem_id = ?", (problem_id,))
         
         conn.commit()
@@ -343,8 +345,9 @@ def get_submissions():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        user_id = request.args.get('user_id')
-        problem_id = request.args.get('problem_id')
+        user_handle = request.args.get('user_handle')
+        problem_title = request.args.get('problem_title')
+        verdict = request.args.get('verdict')
         
         query = """
             SELECT s.submission_id, u.handle, p.title, s.programming_language, 
@@ -357,13 +360,17 @@ def get_submissions():
         """
         params = []
         
-        if user_id:
-            query += " AND s.user_id = ?"
-            params.append(user_id)
+        if user_handle:
+            query += " AND u.handle LIKE ?"
+            params.append(f'%{user_handle}%')
         
-        if problem_id:
-            query += " AND s.problem_id = ?"
-            params.append(problem_id)
+        if problem_title:
+            query += " AND p.title LIKE ?"
+            params.append(f'%{problem_title}%')
+        
+        if verdict:
+            query += " AND s.verdict = ?"
+            params.append(verdict)
         
         query += " ORDER BY s.submission_time DESC"
         
