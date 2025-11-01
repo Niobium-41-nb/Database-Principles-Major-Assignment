@@ -1,199 +1,241 @@
+# 数据库原理大作业 - 在线判题系统 (OJ)
+
 > 数据库原理实验：课程考核是分小组完成一个数据库设计大作业，每个小组2人，需要从选题、需求分析开始分阶段完成一个数据库应用程序的设计与实现，课程结束需要进行演示答辩并提交设计报告和源程序。课程设计大作业占总成绩的70%，过程考核（实验作业、考勤和课堂表现）占总成绩的30%。
 
-# 数据库设计
+## 📋 项目简介
 
-这是一个为在线判题系统（OJ）设计的数据库，特别是模仿 **Codeforces** 平台的功能和结构。数据库名为 `OJ`，使用 **Microsoft SQL Server** 语法编写。下面是对该数据库的详细介绍：
+这是一个基于 **Codeforces** 平台功能设计的在线判题系统（OJ），使用 **Microsoft SQL Server** 作为数据库，**Python Flask** 作为后端框架，前端采用原生 HTML/CSS/JavaScript 实现。
 
----
+## 🏗️ 系统架构
 
-## [数据库结构概览](docs\数据库结构概览.md)
+### 技术栈
+- **后端**: Python Flask + pyodbc
+- **数据库**: Microsoft SQL Server
+- **前端**: HTML5 + CSS3 + JavaScript (原生)
+- **认证**: Windows 身份验证
 
-该数据库包含以下主要表结构：
+### 核心功能
+- ✅ 用户注册与登录系统
+- ✅ 题目浏览与提交
+- ✅ 代码评测（模拟评测）
+- ✅ 比赛管理
+- ✅ 用户排名系统
+- ✅ 管理员功能（题目/比赛创建）
 
-### 1. **用户表 (`USER`)**
+## 📁 项目结构
 
-存储用户信息，包括：
+```
+Database-Principles-Major-Assignment/
+├── app.py                    # Flask 主应用
+├── codeforces_crawler.py     # Codeforces 数据爬虫
+├── config.py                 # 数据库配置
+├── requirements.txt          # Python 依赖
+├── README.md                 # 项目说明文档
+├── database/                 # 数据库相关文件
+│   ├── create.sql           # 数据库表结构创建脚本
+│   ├── import.sql           # 数据导入脚本
+│   ├── view.sql             # 视图创建脚本
+│   └── E-R图/               # 数据库设计图
+├── docs/                    # 项目文档
+│   ├── 功能实现.md          # 功能说明文档
+│   ├── 后端开发手册.md      # 后端开发指南
+│   ├── 前端开发手册.md      # 前端开发指南
+│   └── 数据库结构概览.md    # 数据库结构说明
+├── static/                  # 静态资源文件
+└── templates/              # HTML 模板文件
+    ├── index.html          # 首页
+    ├── problems.html       # 题目列表页
+    ├── problem_detail.html # 题目详情页
+    ├── contests.html       # 比赛列表页
+    ├── contest_detail.html # 比赛详情页
+    ├── contest_standings.html # 比赛排名页
+    ├── submissions.html    # 提交记录页
+    ├── users.html          # 用户列表页
+    ├── profile.html        # 用户个人资料页
+    ├── create_problem.html # 题目创建页
+    ├── create_contest.html # 比赛创建页
+    └── index_loger.html    # 登录页
+```
 
-- 用户ID、用户名（handle）、邮箱、密码
-- 评分相关：当前评分、最高评分、当前等级、最高等级
+## 🗄️ 数据库设计
+
+### 主要数据表
+
+#### 1. **用户表 (Users)**
+- 用户ID、用户名、邮箱、密码
+- 评分信息：当前评分、最高评分、等级
 - 个人信息：国家、城市、组织、头像
 - 活跃信息：注册时间、最后在线时间、贡献值
-- 权限标记：是否为管理员、是否活跃
+- 权限控制：管理员标识、活跃状态
 
-### 2. **比赛表 (`CONTEST`)**
-
-存储比赛信息：
-
-- 比赛ID、名称、类型（CF/IOI/ICPC）、阶段（BEFORE/FINISHED等）
-- 时间信息：开始时间、持续时间（秒）
-- 描述信息：网址、描述、难度、类型、ICPC区域等
+#### 2. **比赛表 (CONTEST)**
+- 比赛ID、名称、类型（CF/IOI/ICPC）、阶段
+- 时间信息：开始时间、持续时间
+- 描述信息：网址、描述、难度、类型、ICPC区域
 - 创建者外键关联用户
 
-### 3. **题目表 (`PROBLEM`)**
-
-存储题目详情：
-
-- 题目ID（唯一）、所属比赛、题目索引（如A、B、C）
-- 题目内容：标题、题目描述、输入输出规范、样例
+#### 3. **题目表 (PROBLEM)**
+- 题目ID（唯一）、所属比赛、题目索引
+- 题目内容：标题、描述、输入输出规范、样例
 - 限制条件：时间限制、内存限制
 - 统计信息：通过数、提交数、难度
 - 可见性控制
 
-### 4. **题目标签系统**
-
+#### 4. **题目标签系统**
 - `PROBLEM_TAG`：标签字典表
 - `PROBLEM_TAG_RELATION`：题目与标签的多对多关系表
 
-### 5. **测试用例表 (`TEST_CASE`)**
-
-存储题目的测试数据：
-
+#### 5. **测试用例表 (TEST_CASE)**
 - 输入数据、期望输出
 - 标记是否为样例、测试顺序
 
-### 6. **提交表 (`SUBMISSION`)**
-
-记录用户提交：
-
+#### 6. **提交表 (SUBMISSION)**
 - 提交ID、用户ID、题目ID、比赛ID
 - 编程语言、源代码、代码长度
-- 判题结果：状态（AC/WRONG_ANSWER等）、耗时、内存使用
+- 判题结果：状态、耗时、内存使用
 - 通过测试数、详细测试结果、提交时间
 
-### 7. **比赛用户关系表 (`CONTEST_USER`)**
-
-记录用户参与比赛的情况：
-
-- 用户在比赛中的角色（作者/测试者/参赛者等）
+#### 7. **比赛用户关系表 (CONTEST_USER)**
+- 用户在比赛中的角色
 - 比赛前后的评分变化
 - 比赛排名、解题数、罚分、得分
 
-### 8. **Hack表 (`HACK`)**
-
-记录Hack行为：
-
+#### 8. **Hack表 (HACK)**
 - Hack者、被Hack者、题目、比赛
-- Hack结果（成功/失败/无效）
-- 使用的测试用例、Hack时间、结果详情
-
-## [功能实现](docs\功能实现.md)
-
-### 查询
-
-1.对所有用户公开信息的查询：
-  
-2.对所有比赛的信息查询
-
-3.支持对所有题目的信息查询
-
-4.支持对所有提交记录的信息查询
-
-5.对某比赛排名情况的排名
-
-### 修改
-
-1.注册账号
-  - 在用户表中添加用户信息
-  
-2.出题
-  - 在题目表中添加题目信息
-
-3.提交
-  - 在提交表中添加提交信息，评测结果用随机。
-
-
-基于你们的技术栈（前端：HTML/CSS/JS，后端：Python），我推荐使用 **Flask** 作为后端框架，因为它轻量、易上手，且与前端配合简单。以下是完整的项目框架设计：
-
----
-
-# 🗂️ 项目文件夹结构
-
-```
-Database-Principles-Major-Assignment/
-├── backend/                 # 后端 Flask 应用
-│   ├── app.py              # Flask 主程序入口
-│   ├── models.py           # 数据库模型（SQLAlchemy）
-│   ├── database.py         # 数据库连接与初始化
-│   ├── routes/             # 路由模块
-│   │   ├── user_routes.py
-│   │   ├── problem_routes.py
-│   │   ├── contest_routes.py
-│   │   └── submission_routes.py
-│   ├── utils/              # 工具函数
-│   │   ├── judge.py        # 模拟评测逻辑（随机结果）
-│   │   └── auth.py         # 认证相关
-│   ├── config.py           # 配置文件
-│   └── requirements.txt    # Python 依赖包
-│
-├── frontend/               # 前端静态文件
-│   ├── index.html          # 首页
-│   ├── css/
-│   │   └── style.css       # 全局样式
-│   ├── js/
-│   │   ├── main.js         # 主逻辑
-│   │   ├── user.js         # 用户相关功能
-│   │   ├── problem.js      # 题目展示与提交
-│   │   ├── contest.js      # 比赛列表与排名
-│   │   └── submission.js   # 提交记录查询
-│   └── assets/             # 图片、图标等静态资源
-│
-├── docs/                   # 项目文档
-│   ├── README.md
-│   ├── 功能实现.md
-│   └── 数据库结构概览.md
-│
-└── README.md               # 项目总说明
-```
-
----
-
-# 🛠️ 技术栈说明
-
-### [后端（Python + Flask）](docs/后端开发手册.md)
-- **Flask**：轻量级 Web 框架
-- **SQLAlchemy**：ORM 数据库操作
-- **PyMySQL / pymssql**：连接 SQL Server
-- **Flask-CORS**：处理前端跨域请求
-
-### [前端（HTML + CSS + JS）](docs/前端开发手册.md)
-- 原生 JavaScript + Fetch API 与后端交互
-- CSS 使用 Flex/Grid 布局，响应式设计
-- 无需框架，便于快速上手和部署
-
----
-
-## 📦 环境与依赖
-
-### `backend/requirements.txt`
-```txt
-Flask==2.3.3
-Flask-SQLAlchemy==3.0.5
-Flask-CORS==4.0.0
-pymssql==2.2.7
-```
-
----
+- Hack结果、使用的测试用例、Hack时间
 
 ## 🚀 快速开始
 
-### 1. 克隆项目并安装后端依赖
-```bash
-cd backend
-pip install -r requirements.txt
+### 环境要求
+- Python 3.7+
+- Microsoft SQL Server
+- Windows 操作系统（支持 Windows 身份验证）
+
+### 安装步骤
+
+1. **克隆项目**
+   ```bash
+   git clone <repository-url>
+   cd Database-Principles-Major-Assignment
+   ```
+
+2. **安装 Python 依赖**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **配置数据库**
+   - 确保 SQL Server 服务正在运行
+   - 修改 `config.py` 中的数据库配置：
+   ```python
+   DB_SERVER = 'localhost'  # 或您的 SQL Server 实例名
+   DB_NAME = 'OJ'
+   ```
+
+4. **创建数据库**
+   - 在 SQL Server 中创建名为 `OJ` 的数据库
+   - 执行 `database/create.sql` 创建表结构
+   - 可选：执行 `database/import.sql` 导入示例数据
+
+5. **启动应用**
+   ```bash
+   python app.py
+   ```
+
+6. **访问系统**
+   打开浏览器访问：`http://localhost:5000`
+
+### 默认管理员账号
+系统启动后，您需要手动在数据库中创建管理员用户：
+```sql
+INSERT INTO Users (handle, email, password, name, is_admin) 
+VALUES ('admin', 'admin@example.com', 'password', 'Administrator', 1);
 ```
 
-### 2. 配置数据库连接
-在 `backend/config.py` 中修改：
-```python
-SQLALCHEMY_DATABASE_URI = "mssql+pymssql://用户名:密码@服务器地址/数据库名"
-```
+## 🔧 功能特性
 
-### 3. 启动后端
-```bash
-python app.py
-```
+### 用户功能
+- [x] 用户注册与登录
+- [x] 个人信息管理
+- [x] 密码修改
+- [x] 题目浏览与搜索
+- [x] 代码提交与评测
+- [x] 提交记录查看
+- [x] 比赛参与
+- [x] 排名查看
 
-### 4. 启动前端
-用浏览器打开 `frontend/index.html`，或使用 Live Server（VSCode 插件）启动。
+### 管理员功能
+- [x] 题目创建与管理
+- [x] 比赛创建与管理
+- [x] 用户权限管理
+- [x] 系统数据管理
+
+### 评测系统
+- [x] 多语言支持
+- [x] 模拟评测（随机结果）
+- [x] 详细的评测信息
+- [x] 测试用例管理
+
+## 📊 API 接口
+
+### 用户相关
+- `POST /api/register` - 用户注册
+- `POST /api/login` - 用户登录
+- `GET /api/logout` - 用户登出
+- `GET /api/user/current` - 获取当前用户信息
+- `POST /api/user/update` - 更新用户信息
+- `POST /api/user/change_password` - 修改密码
+
+### 题目相关
+- `GET /api/problems` - 获取题目列表
+- `GET /api/problem/<problem_id>` - 获取题目详情
+- `POST /api/submit` - 提交代码
+- `POST /api/problems/create` - 创建题目（管理员）
+
+### 比赛相关
+- `GET /api/contests` - 获取比赛列表
+- `GET /api/contest/<contest_id>` - 获取比赛详情
+- `GET /api/contest/<contest_id>/standings` - 获取比赛排名
+- `POST /api/contests/create` - 创建比赛（管理员）
+
+### 提交记录
+- `GET /api/submissions` - 获取提交记录
+- 支持按用户、题目、结果筛选
+
+## 🐛 已知限制
+
+1. **评测系统**: 当前使用随机结果模拟评测，不支持真实的代码编译和执行
+2. **安全性**: 密码以明文存储，生产环境需要加密处理
+3. **性能**: 未进行大规模并发测试和性能优化
+4. **功能**: 缺少真实的代码编译、Hack 功能等高级特性
+
+## 📝 开发说明
+
+### 数据库连接
+系统使用 Windows 身份验证连接 SQL Server，无需配置用户名和密码。
+
+### 扩展开发
+- 添加新的编程语言支持
+- 实现真实的代码评测系统
+- 添加更多比赛类型和功能
+- 优化前端界面和用户体验
+
+## 🤝 贡献指南
+
+1. Fork 本项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 📄 许可证
+
+本项目仅用于数据库原理课程教学目的。
+
+## 📞 联系方式
+
+如有问题或建议，请联系项目维护者。
 
 ---
+
+*最后更新: 2025年11月*
