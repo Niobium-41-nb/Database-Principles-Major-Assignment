@@ -380,7 +380,7 @@ class DatabaseManager:
 
         for user_id, handle in users:
             try:
-                submissions = crawler.get_user_submissions(handle, 5)  # 每个用户获取5条记录
+                submissions = crawler.get_user_submissions(handle, 10)  # 每个用户获取5条记录
 
                 for submission in submissions:
                     try:
@@ -463,22 +463,22 @@ def main():
 
     try:
         # 1. 爬取并插入用户数据
-        users = crawler.get_users(20)  # 获取20个用户
+        users = crawler.get_users(2000)  # 获取20个用户
         if users:
             db_manager.insert_users(users)
 
         # 2. 爬取并插入比赛数据
         contests = crawler.get_contests()
         if contests:
-            db_manager.insert_contests(contests[:30])  # 插入前30个比赛
+            db_manager.insert_contests(contests[:3000])  # 插入前30个比赛
 
         # 3. 爬取并插入题目数据
         problems, stats = crawler.get_problems()
         if problems:
-            db_manager.insert_problems(problems[:50], stats)  # 插入前50个题目
+            db_manager.insert_problems(problems[:50000], stats)  # 插入前50个题目
 
         # 4. 插入提交记录
-        db_manager.insert_submissions(crawler)
+        # db_manager.insert_submissions(crawler)
 
         print("=== 数据爬取和插入完成 ===")
 
