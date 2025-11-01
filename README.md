@@ -105,6 +105,151 @@ Database-Principles-Major-Assignment/
 - Hack者、被Hack者、题目、比赛
 - Hack结果、使用的测试用例、Hack时间
 
+### E-R 图
+
+```mermaid
+erDiagram
+    Users {
+        bigint user_id PK
+        varchar handle UK
+        varchar email UK
+        varchar password
+        varchar name
+        int rating
+        int max_rating
+        varchar user_rank
+        varchar max_rank
+        varchar country
+        varchar city
+        varchar organization
+        varchar avatar
+        datetime2 registration_time
+        datetime2 last_online_time
+        int contribution
+        bit is_admin
+        bit is_active
+    }
+
+    CONTEST {
+        bigint contest_id PK
+        varchar name
+        varchar type
+        varchar phase
+        bit frozen
+        datetime2 start_time
+        int duration_seconds
+        varchar website_url
+        text description
+        int difficulty
+        varchar kind
+        varchar icpc_region
+        varchar country
+        varchar city
+        varchar season
+        bigint created_by FK
+    }
+
+    PROBLEM {
+        varchar problem_id PK
+        bigint contest_id FK
+        varchar problem_index
+        varchar title
+        text statement
+        text input_specification
+        text output_specification
+        nvarchar sample_tests
+        text notes
+        int time_limit_ms
+        int memory_limit_kb
+        varchar difficulty
+        int accepted_count
+        int submission_count
+        datetime2 creation_time
+        bit is_visible
+    }
+
+    PROBLEM_TAG {
+        bigint tag_id PK
+        varchar name UK
+        text description
+    }
+
+    PROBLEM_TAG_RELATION {
+        varchar problem_id PK,FK
+        bigint tag_id PK,FK
+    }
+
+    TEST_CASE {
+        bigint test_case_id PK
+        varchar problem_id FK
+        text input_data
+        text expected_output
+        bit is_sample
+        int test_order
+    }
+
+    SUBMISSION {
+        bigint submission_id PK
+        bigint user_id FK
+        varchar problem_id FK
+        bigint contest_id FK
+        varchar programming_language
+        text source_code
+        int source_length
+        varchar verdict
+        int time_consumed_ms
+        int memory_consumed_kb
+        int passed_test_count
+        nvarchar test_results
+        datetime2 submission_time
+        int relative_time
+        int points
+    }
+
+    CONTEST_USER {
+        bigint contest_id PK,FK
+        bigint user_id PK,FK
+        datetime2 registration_time
+        varchar role
+        int rating_before
+        int rating_after
+        int contest_rank
+        int solved_count
+        int total_penalty
+        int scores
+    }
+
+    HACK {
+        bigint hack_id PK
+        bigint hacker_id FK
+        bigint defender_id FK
+        varchar problem_id FK
+        bigint contest_id FK
+        varchar verdict
+        text test_case
+        datetime2 hack_time
+        text hack_result
+    }
+
+    Users ||--o{ CONTEST : "created_by"
+    Users ||--o{ SUBMISSION : "submits"
+    Users ||--o{ HACK : "as_hacker"
+    Users ||--o{ HACK : "as_defender"
+    Users }o--|| CONTEST_USER : "participates_in"
+    
+    CONTEST ||--o{ PROBLEM : "contains"
+    CONTEST ||--o{ SUBMISSION : "has_submissions"
+    CONTEST ||--o{ HACK : "has_hacks"
+    CONTEST }o--|| CONTEST_USER : "has_participants"
+    
+    PROBLEM ||--o{ PROBLEM_TAG_RELATION : "has_tags"
+    PROBLEM ||--o{ TEST_CASE : "has_test_cases"
+    PROBLEM ||--o{ SUBMISSION : "has_submissions"
+    PROBLEM ||--o{ HACK : "targeted_in"
+    
+    PROBLEM_TAG ||--o{ PROBLEM_TAG_RELATION : "categorizes"
+```
+
 ## 🚀 快速开始
 
 ### 环境要求
