@@ -482,6 +482,7 @@ def get_users():
         if 'conn' in locals():
             conn.close()
 
+
 @app.route('/api/contest/<contest_id>/standings')
 def get_contest_standings(contest_id):
     """获取比赛排名"""
@@ -489,26 +490,70 @@ def get_contest_standings(contest_id):
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # 首先验证contest_id是否为数字
+        if not contest_id.isdigit():
+            return jsonify({'success': False, 'message': '比赛ID格式错误'})
+        
+        contest_id_int = int(contest_id)
+        
+        # 获取比赛信息
+        cursor.execute("SELECT name, phase FROM CONTEST WHERE contest_id = ?", (contest_id_int,))
+        contest = cursor.fetchone()
+        if not contest:
+            return jsonify({'success': False, 'message': '比赛不存在'})
+        
+        contest_name, contest_phase = contest
+        
+        # 获取参赛用户及其排名
         cursor.execute("""
-            SELECT u.handle, u.rating, cu.contest_rank, cu.solved_count, cu.total_penalty, cu.scores
+            SELECT 
+                u.handle, 
+                u.rating,
+                cu.contest_rank,
+                cu.solved_count,
+                cu.total_penalty,
+                cu.scores,
+                cu.rating_before,
+                cu.rating_after
             FROM CONTEST_USER cu
             INNER JOIN Users u ON cu.user_id = u.user_id
-            WHERE cu.contest_id = ?
-            ORDER BY cu.contest_rank
-        """, (contest_id,))
+            WHERE cu.contest_id = ? AND cu.role = 'contestant'
+            ORDER BY 
+                CASE 
+                    WHEN cu.contest_rank IS NOT NULL THEN cu.contest_rank 
+                    ELSE 999999 
+                END,
+                cu.solved_count DESC,
+                cu.total_penalty ASC
+        """, (contest_id_int,))
         
         standings = []
+        rank = 1
         for row in cursor.fetchall():
+            handle, rating, contest_rank, solved_count, total_penalty, scores, rating_before, rating_after = row
+            
+            # 计算Rating变化
+            rating_change = None
+            if rating_after is not None and rating_before is not None:
+                rating_change = rating_after - rating_before
+            
             standings.append({
-                'handle': row[0],
-                'rating': row[1],
-                'rank': row[2],
-                'solved_count': row[3],
-                'penalty': row[4],
-                'score': row[5]
+                'handle': handle,
+                'rating': rating,
+                'contest_rank': contest_rank or rank,
+                'solved_count': solved_count or 0,
+                'penalty': total_penalty or 0,
+                'score': scores or 0,
+                'rating_change': rating_change
             })
+            rank += 1
         
-        return jsonify({'success': True, 'standings': standings})
+        return jsonify({
+            'success': True, 
+            'standings': standings,
+            'contest_name': contest_name,
+            'contest_phase': contest_phase
+        })
         
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取比赛排名失败: {str(e)}'})
@@ -1012,13 +1057,19 @@ def get_contest_problems(contest_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # 验证contest_id
+        if not contest_id.isdigit():
+            return jsonify({'success': False, 'message': '比赛ID格式错误'})
+        
+        contest_id_int = int(contest_id)
 
         cursor.execute("""
             SELECT problem_id, title, difficulty, time_limit_ms, memory_limit_kb
             FROM PROBLEM
             WHERE contest_id = ? AND is_visible = 1
             ORDER BY problem_index
-        """, (contest_id,))
+        """, (contest_id_int,))
 
         problems = []
         for row in cursor.fetchall():
@@ -1193,6 +1244,189 @@ def get_available_problems(contest_id):
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取题目列表失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/contest/<contest_id>/register', methods=['POST'])
+def register_contest(contest_id):
+    """用户报名参加比赛"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 验证contest_id
+        if not contest_id.isdigit():
+            return jsonify({'success': False, 'message': '比赛ID格式错误'})
+        
+        contest_id_int = int(contest_id)
+        
+        # 检查比赛是否存在
+        cursor.execute("SELECT contest_id FROM CONTEST WHERE contest_id = ?", (contest_id_int,))
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': '比赛不存在'})
+        
+        # 检查是否已经报名
+        cursor.execute("""
+            SELECT contest_id FROM CONTEST_USER 
+            WHERE contest_id = ? AND user_id = ?
+        """, (contest_id_int, session['user_id']))
+        
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': '已经报名参加此比赛'})
+        
+        # 获取用户当前rating
+        cursor.execute("SELECT rating FROM Users WHERE user_id = ?", (session['user_id'],))
+        user_rating = cursor.fetchone()[0]
+        
+        # 插入报名记录
+        cursor.execute("""
+            INSERT INTO CONTEST_USER (contest_id, user_id, registration_time, role, rating_before)
+            VALUES (?, ?, GETDATE(), 'contestant', ?)
+        """, (contest_id_int, session['user_id'], user_rating))
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '报名成功'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'报名失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/contest/<contest_id>/generate_standings', methods=['POST'])
+def generate_contest_standings(contest_id):
+    """生成比赛排名（管理员功能）"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+    
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': '只有管理员可以生成排名'})
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 验证contest_id
+        if not contest_id.isdigit():
+            return jsonify({'success': False, 'message': '比赛ID格式错误'})
+        
+        contest_id_int = int(contest_id)
+        
+        # 检查比赛是否存在
+        cursor.execute("SELECT contest_id, start_time FROM CONTEST WHERE contest_id = ?", (contest_id_int,))
+        contest = cursor.fetchone()
+        if not contest:
+            return jsonify({'success': False, 'message': '比赛不存在'})
+        
+        contest_id_db, start_time = contest
+        
+        # 获取比赛中的提交记录
+        cursor.execute("""
+            SELECT 
+                s.user_id,
+                s.problem_id,
+                s.verdict,
+                s.submission_time,
+                s.points
+            FROM SUBMISSION s
+            WHERE s.contest_id = ?
+            ORDER BY s.user_id, s.problem_id, s.submission_time
+        """, (contest_id_int,))
+        
+        submissions = cursor.fetchall()
+        
+        # 获取参赛用户
+        cursor.execute("""
+            SELECT user_id FROM CONTEST_USER 
+            WHERE contest_id = ? AND role = 'contestant'
+        """, (contest_id_int,))
+        
+        contestants = [row[0] for row in cursor.fetchall()]
+        
+        if not contestants:
+            return jsonify({'success': False, 'message': '没有参赛用户'})
+        
+        # 计算每个用户的解题情况
+        user_stats = {}
+        for user_id in contestants:
+            user_stats[user_id] = {
+                'solved_count': 0,
+                'total_penalty': 0,
+                'total_score': 0,
+                'problems': {}
+            }
+        
+        # 处理提交记录
+        for submission in submissions:
+            user_id, problem_id, verdict, submission_time, points = submission
+            
+            if user_id not in user_stats:
+                continue
+                
+            if problem_id not in user_stats[user_id]['problems']:
+                user_stats[user_id]['problems'][problem_id] = {
+                    'solved': False,
+                    'penalty': 0,
+                    'submissions': 0,
+                    'score': 0,
+                    'solve_time': None
+                }
+            
+            problem_stats = user_stats[user_id]['problems'][problem_id]
+            
+            if not problem_stats['solved']:
+                problem_stats['submissions'] += 1
+                
+                if verdict == 'Accepted':
+                    problem_stats['solved'] = True
+                    # 计算解题时间（从比赛开始算起的分钟数）
+                    solve_minutes = (submission_time - start_time).total_seconds() / 60
+                    problem_stats['solve_time'] = solve_minutes
+                    problem_stats['penalty'] = solve_minutes + (problem_stats['submissions'] - 1) * 20  # 每错误提交加20分钟罚时
+                    
+                    user_stats[user_id]['solved_count'] += 1
+                    user_stats[user_id]['total_penalty'] += problem_stats['penalty']
+                
+                # 处理得分制比赛
+                if points and points > problem_stats['score']:
+                    problem_stats['score'] = points
+        
+        # 计算总分（对于得分制比赛）
+        for user_id in user_stats:
+            total_score = sum(problem['score'] for problem in user_stats[user_id]['problems'].values())
+            user_stats[user_id]['total_score'] = total_score
+        
+        # 排序用户（按解题数降序，罚时升序）
+        sorted_users = sorted(contestants, key=lambda uid: (
+            -user_stats[uid]['solved_count'],
+            user_stats[uid]['total_penalty']
+        ))
+        
+        # 更新数据库中的排名
+        current_rank = 1
+        for user_id in sorted_users:
+            stats = user_stats[user_id]
+            cursor.execute("""
+                UPDATE CONTEST_USER 
+                SET contest_rank = ?, solved_count = ?, total_penalty = ?, scores = ?
+                WHERE contest_id = ? AND user_id = ?
+            """, (current_rank, stats['solved_count'], int(stats['total_penalty']), 
+                  stats['total_score'], contest_id_int, user_id))
+            current_rank += 1
+        
+        conn.commit()
+        return jsonify({'success': True, 'message': '排名生成成功'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'生成排名失败: {str(e)}'})
     finally:
         if 'cursor' in locals():
             cursor.close()

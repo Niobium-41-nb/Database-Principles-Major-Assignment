@@ -35,6 +35,7 @@ Database-Principles-Major-Assignment/
 │   ├── create.sql           # 数据库表结构创建脚本
 │   ├── import.sql           # 数据导入脚本
 │   ├── view.sql             # 视图创建脚本
+│   ├── create_admin.sql     # 管理员创建脚本
 │   └── E-R图/               # 数据库设计图
 ├── docs/                    # 项目文档
 │   ├── 功能实现.md          # 功能说明文档

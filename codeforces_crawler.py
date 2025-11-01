@@ -5,7 +5,7 @@ import json
 import random
 import string
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class CodeforcesCrawler:
@@ -384,6 +384,10 @@ class DatabaseManager:
 
                 for submission in submissions:
                     try:
+                        # 检查提交记录中是否包含必要的字段
+                        if 'problem' not in submission or 'contestId' not in submission['problem']:
+                            continue
+                            
                         problem_id = f"{submission['problem']['contestId']}{submission['problem']['index']}"
 
                         # 检查题目是否存在
@@ -393,7 +397,7 @@ class DatabaseManager:
 
                         # 处理比赛ID：如果不在有效比赛ID中，设为NULL
                         contest_id = submission.get('contestId')
-                        if contest_id not in valid_contest_ids:
+                        if contest_id is None or contest_id not in valid_contest_ids:
                             contest_id = None
 
                         # 映射判决结果到新的格式
@@ -415,12 +419,20 @@ class DatabaseManager:
 
                         verdict = verdict_map.get(submission.get('verdict', ''), 'Pending')
 
+                        # 处理可能缺失的字段
+                        time_consumed_ms = submission.get('timeConsumedMillis', 0)
+                        memory_consumed_bytes = submission.get('memoryConsumedBytes', 0)
+                        memory_consumed_kb = memory_consumed_bytes // 1024 if memory_consumed_bytes else 0
+                        passed_test_count = submission.get('passedTestCount', 0)
+                        creation_time = submission.get('creationTimeSeconds', time.time())
+                        relative_time = submission.get('relativeTimeSeconds', 0)
+
                         self.cursor.execute("""
                             INSERT INTO SUBMISSION (user_id, problem_id, contest_id, 
-                                                 programming_language, source_code, 
-                                                 source_length, verdict, time_consumed_ms,
-                                                 memory_consumed_kb, passed_test_count,
-                                                 submission_time, relative_time)
+                                                programming_language, source_code, 
+                                                source_length, verdict, time_consumed_ms,
+                                                memory_consumed_kb, passed_test_count,
+                                                submission_time, relative_time)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                                             user_id,
@@ -430,12 +442,11 @@ class DatabaseManager:
                                             f"// Source code for {problem_id} by {handle}",
                                             len(f"// Source code for {problem_id} by {handle}"),
                                             verdict,
-                                            submission.get('timeConsumedMillis', 0),
-                                            submission.get('memoryConsumedBytes', 0) // 1024 if submission.get(
-                                                'memoryConsumedBytes') else 0,
-                                            submission.get('passedTestCount', 0),
-                                            datetime.fromtimestamp(submission.get('creationTimeSeconds', time.time())),
-                                            submission.get('relativeTimeSeconds', 0)
+                                            time_consumed_ms,
+                                            memory_consumed_kb,
+                                            passed_test_count,
+                                            datetime.fromtimestamp(creation_time),
+                                            relative_time
                                             )
                         inserted_count += 1
 
@@ -455,6 +466,201 @@ class DatabaseManager:
         print(f"成功插入 {inserted_count} 个提交记录")
         return inserted_count
 
+    def insert_contest_users(self, crawler):
+        """插入比赛用户关系数据"""
+        inserted_count = 0
+        print("开始插入比赛用户关系数据...")
+        
+        # 获取用户列表
+        self.cursor.execute("SELECT user_id, handle FROM Users")
+        users = self.cursor.fetchall()
+        
+        if not users:
+            print("没有找到用户数据，跳过比赛用户关系插入")
+            return 0
+        
+        # 获取比赛列表
+        self.cursor.execute("SELECT contest_id, name FROM CONTEST")
+        contests = self.cursor.fetchall()
+        
+        if not contests:
+            print("没有找到比赛数据，跳过比赛用户关系插入")
+            return 0
+        
+        # 为每个比赛随机分配一些参与者
+        for contest_id, contest_name in contests:
+            try:
+                # 确保不会选择超过用户总数的参与者
+                participant_count = min(random.randint(5, 20), len(users))
+                participants = random.sample(users, participant_count)
+                
+                for user_id, handle in participants:
+                    try:
+                        # 检查是否已存在该关系
+                        self.cursor.execute("""
+                            SELECT 1 FROM CONTEST_USER 
+                            WHERE contest_id = ? AND user_id = ?
+                        """, contest_id, user_id)
+                        
+                        if self.cursor.fetchone():
+                            continue
+                        
+                        # 随机分配角色（大部分为参赛者）
+                        roles = ['contestant'] * 8 + ['virtual'] * 1 + ['out_of_competition'] * 1
+                        role = random.choice(roles)
+                        
+                        # 如果是前几个比赛，添加一些作者和测试者
+                        if contest_id <= 5 and participants.index((user_id, handle)) < 3:
+                            if random.random() < 0.3:
+                                role = 'author'
+                            elif random.random() < 0.5:
+                                role = 'tester'
+                        
+                        # 获取用户当前评分
+                        self.cursor.execute("SELECT rating FROM Users WHERE user_id = ?", user_id)
+                        user_rating_result = self.cursor.fetchone()
+                        rating_before = user_rating_result[0] if user_rating_result else 0
+                        
+                        # 模拟比赛后的评分变化（±0-200）
+                        rating_change = random.randint(-50, 150)
+                        rating_after = max(0, rating_before + rating_change)
+                        
+                        # 随机生成比赛排名
+                        contest_rank = random.randint(1, len(participants))
+                        
+                        # 根据排名生成解题数量和罚时
+                        max_solved = min(10, contest_rank // 2 + 1)
+                        solved_count = random.randint(0, max_solved)
+                        
+                        # 罚时与解题数量和排名相关
+                        base_penalty = solved_count * 1200  # 每道题基础罚时
+                        rank_penalty = contest_rank * 10    # 排名相关的额外罚时
+                        total_penalty = base_penalty + random.randint(-300, 300) + rank_penalty
+                        
+                        # 计算得分（与解题数量和排名相关）
+                        scores = solved_count * 100 + max(0, 500 - contest_rank * 10)
+                        
+                        # 使用 timedelta（需要导入）
+                        registration_time = datetime.now() - timedelta(days=random.randint(1, 365))
+                        
+                        self.cursor.execute("""
+                            INSERT INTO CONTEST_USER (contest_id, user_id, registration_time, 
+                                                role, rating_before, rating_after, 
+                                                contest_rank, solved_count, total_penalty, scores)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, 
+                                            contest_id,
+                                            user_id,
+                                            registration_time,
+                                            role,
+                                            rating_before,
+                                            rating_after,
+                                            contest_rank,
+                                            solved_count,
+                                            int(total_penalty),
+                                            scores
+                                            )
+                        inserted_count += 1
+                        
+                        # 如果比赛已完成，更新用户的评分
+                        if role == 'contestant' and rating_after != rating_before:
+                            self.cursor.execute("""
+                                UPDATE Users 
+                                SET rating = ?, 
+                                    max_rating = CASE WHEN ? > max_rating THEN ? ELSE max_rating END,
+                                    user_rank = ?,
+                                    max_rank = CASE WHEN ? > max_rating THEN ? ELSE max_rank END
+                                WHERE user_id = ?
+                            """, 
+                                                rating_after,
+                                                rating_after, rating_after,
+                                                self.calculate_rank(rating_after),
+                                                rating_after, self.calculate_rank(rating_after),
+                                                user_id)
+                            
+                    except Exception as e:
+                        print(f"插入用户 {handle} 到比赛 {contest_name} 错误: {e}")
+                        continue
+                        
+            except Exception as e:
+                print(f"处理比赛 {contest_name} 用户关系错误: {e}")
+                continue
+        
+        self.conn.commit()
+        print(f"成功插入 {inserted_count} 个比赛用户关系")
+        return inserted_count
+
+    
+
+    def get_user_contest_history(self, user_id):
+        """获取用户比赛历史"""
+        try:
+            self.cursor.execute("""
+                SELECT c.name, c.start_time, cu.contest_rank, cu.solved_count,
+                    cu.rating_before, cu.rating_after, cu.role
+                FROM CONTEST_USER cu
+                JOIN CONTEST c ON cu.contest_id = c.contest_id
+                WHERE cu.user_id = ?
+                ORDER BY c.start_time DESC
+            """, user_id)
+            
+            history = self.cursor.fetchall()
+            return history
+        except Exception as e:
+            print(f"获取用户比赛历史错误: {e}")
+            return []
+
+    def get_contest_standings(self, contest_id):
+        """获取比赛排名"""
+        try:
+            self.cursor.execute("""
+                SELECT 
+                    u.handle, 
+                    COALESCE(u.name, u.handle) as display_name,  -- 如果name为NULL，使用handle
+                    cu.contest_rank, 
+                    cu.solved_count, 
+                    cu.total_penalty, 
+                    cu.scores, 
+                    cu.rating_before, 
+                    cu.rating_after,
+                    cu.role
+                FROM CONTEST_USER cu
+                JOIN Users u ON cu.user_id = u.user_id
+                WHERE cu.contest_id = ?
+                ORDER BY cu.contest_rank ASC
+            """, contest_id)
+            
+            standings = self.cursor.fetchall()
+            return standings
+        except Exception as e:
+            print(f"获取比赛排名错误: {e}")
+            return []
+
+    def display_contest_standings(self, contest_id):
+        """显示比赛排名（更好的格式化输出）"""
+        standings = self.get_contest_standings(contest_id)
+        if not standings:
+            print(f"比赛 {contest_id} 没有找到排名数据")
+            return
+        
+        print(f"\n=== 比赛 {contest_id} 排名 ===")
+        print(f"{'排名':<4} {'用户名':<20} {'显示名':<20} {'解题数':<6} {'罚时':<8} {'得分':<6} {'角色':<15}")
+        print("-" * 85)
+        
+        for standing in standings[:10]:  # 只显示前10名
+            handle, display_name, rank, solved, penalty, score, rating_before, rating_after, role = standing
+            
+            # 处理可能的None值
+            handle = handle or "Unknown"
+            display_name = display_name or handle
+            solved = solved or 0
+            penalty = penalty or 0
+            score = score or 0
+            role = role or "contestant"
+            
+            print(f"{rank:<4} {handle:<20} {display_name:<20} {solved:<6} {penalty:<8} {score:<6} {role:<15}")
+
+
     def close(self):
         """关闭数据库连接"""
         if self.conn:
@@ -470,27 +676,58 @@ def main():
 
     try:
         # 1. 爬取并插入用户数据
-        users = crawler.get_users(2000)  # 获取20个用户
+        users = crawler.get_users(20000)
         if users:
             db_manager.insert_users(users)
 
         # 2. 爬取并插入比赛数据
         contests = crawler.get_contests()
         if contests:
-            db_manager.insert_contests(contests[:3000])  # 插入前30个比赛
+            db_manager.insert_contests(contests[:5000])  # 减少比赛数量以便测试
 
         # 3. 爬取并插入题目数据
         problems, stats = crawler.get_problems()
         if problems:
-            db_manager.insert_problems(problems[:50000], stats)  # 插入前50个题目
+            db_manager.insert_problems(problems[:10000], stats)  # 减少题目数量以便测试
 
-        # 4. 插入提交记录
-        db_manager.insert_submissions(crawler)
+        # 4. 插入比赛用户关系
+        db_manager.insert_contest_users(crawler)
+
+        # 5. 插入提交记录
+        # db_manager.insert_submissions(crawler)
 
         print("=== 数据爬取和插入完成 ===")
 
+        # 显示统计信息
+        print("\n=== 统计信息 ===")
+        
+        # 检查数据是否成功插入
+        db_manager.cursor.execute("SELECT COUNT(*) FROM Users")
+        user_count = db_manager.cursor.fetchone()[0]
+        print(f"总用户数: {user_count}")
+        
+        db_manager.cursor.execute("SELECT COUNT(*) FROM CONTEST")
+        contest_count = db_manager.cursor.fetchall()[0]
+        print(f"总比赛数: {contest_count}")
+        
+        db_manager.cursor.execute("SELECT COUNT(*) FROM CONTEST_USER")
+        contest_user_count = db_manager.cursor.fetchone()[0]
+        print(f"总比赛参与记录: {contest_user_count}")
+        
+        # 获取第一个比赛并显示排名
+        db_manager.cursor.execute("SELECT TOP 1 contest_id, name FROM CONTEST")
+        first_contest = db_manager.cursor.fetchone()
+        if first_contest:
+            contest_id, contest_name = first_contest
+            print(f"\n显示比赛 '{contest_name}' (ID: {contest_id}) 的排名:")
+            db_manager.display_contest_standings(contest_id)
+        else:
+            print("没有找到比赛数据")
+
     except Exception as e:
         print(f"程序执行过程中发生错误: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         db_manager.close()
 
