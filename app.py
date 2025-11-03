@@ -489,25 +489,23 @@ def get_contest_standings(contest_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        
+
         # 首先验证contest_id是否为数字
         if not contest_id.isdigit():
             return jsonify({'success': False, 'message': '比赛ID格式错误'})
-        
         contest_id_int = int(contest_id)
-        
+
         # 获取比赛信息
         cursor.execute("SELECT name, phase FROM CONTEST WHERE contest_id = ?", (contest_id_int,))
         contest = cursor.fetchone()
         if not contest:
             return jsonify({'success': False, 'message': '比赛不存在'})
-        
         contest_name, contest_phase = contest
-        
+
         # 获取参赛用户及其排名
         cursor.execute("""
-            SELECT 
-                u.handle, 
+            SELECT
+                u.handle,
                 u.rating,
                 cu.contest_rank,
                 cu.solved_count,
@@ -518,43 +516,43 @@ def get_contest_standings(contest_id):
             FROM CONTEST_USER cu
             INNER JOIN Users u ON cu.user_id = u.user_id
             WHERE cu.contest_id = ? AND cu.role = 'contestant'
-            ORDER BY 
-                CASE 
-                    WHEN cu.contest_rank IS NOT NULL THEN cu.contest_rank 
-                    ELSE 999999 
+            ORDER BY
+                CASE
+                    WHEN cu.contest_rank IS NOT NULL THEN cu.contest_rank
+                    ELSE 999999
                 END,
                 cu.solved_count DESC,
                 cu.total_penalty ASC
         """, (contest_id_int,))
-        
+
         standings = []
         rank = 1
         for row in cursor.fetchall():
             handle, rating, contest_rank, solved_count, total_penalty, scores, rating_before, rating_after = row
-            
+
             # 计算Rating变化
             rating_change = None
             if rating_after is not None and rating_before is not None:
                 rating_change = rating_after - rating_before
-            
+
             standings.append({
-                'handle': handle,
+                'username': handle,  # 修改这里：将 'handle' 改为 'username'
                 'rating': rating,
                 'contest_rank': contest_rank or rank,
                 'solved_count': solved_count or 0,
                 'penalty': total_penalty or 0,
-                'score': scores or 0,
+                'total_score': scores or 0,  # 同时修复这个字段名
                 'rating_change': rating_change
             })
             rank += 1
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'standings': standings,
             'contest_name': contest_name,
             'contest_phase': contest_phase
         })
-        
+
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取比赛排名失败: {str(e)}'})
     finally:

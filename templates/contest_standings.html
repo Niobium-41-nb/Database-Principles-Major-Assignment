@@ -256,7 +256,7 @@
         function displayStandings(standings) {
             const tbody = document.getElementById('standings-table-body');
 
-            if (!standings || standings.length === 0) {
+            if (!standings || standings.length == 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 2rem; color: #666;">
@@ -274,20 +274,28 @@
                 if (rank <= 3) {
                     tr.className = `rank-${rank}`;
                 }
+                
+                // 修复这里：确保使用正确的字段名
+                const username = row.username || row.handle || 'Unknown'; // 添加回退逻辑
+                const userRating = row.rating || 0;
+                const solvedCount = row.solved_count || 0;
+                const penalty = row.penalty || 0;
+                const totalScore = row.total_score || row.scores || 0; // 兼容两种字段名
+                const ratingChange = row.rating_change;
 
                 tr.innerHTML = `
                     <td>${rank}</td>
                     <td style="text-align: left;">
-                        <a href="/user/${row.user_id}" class="user-handle ${getRatingClass(row.rating)}">
-                            ${row.username}
+                        <a href="/user/${row.user_id}" class="user-handle ${getRatingClass(userRating)}">
+                            ${username}
                         </a>
-                        ${row.is_me ? '<span style="color: #e74c3c; margin-left: 0.5rem;">(我)</span>' : ''}
+                        ${row.is_me ? '<span style="color: #e74c3c; margin-left: 0.5rem;">[我]</span>' : ''}
                     </td>
-                    <td class="${getRatingClass(row.rating)}">${row.rating || '-'}</td>
-                    <td>${row.solved_count || 0}</td>
-                    <td>${formatPenalty(row.penalty)}</td>
-                    <td>${row.total_score || 0}</td>
-                    <td>${formatRatingChange(row.rating_change)}</td>
+                    <td class="${getRatingClass(userRating)}">${userRating || '-'}</td>
+                    <td>${solvedCount}</td>
+                    <td>${formatPenalty(penalty)}</td>
+                    <td>${totalScore}</td>
+                    <td>${formatRatingChange(ratingChange)}</td>
                 `;
                 tbody.appendChild(tr);
             });
