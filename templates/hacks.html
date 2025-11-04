@@ -143,6 +143,22 @@
             font-style: italic;
         }
 
+        .nav-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover {
+            background-color: #5a6268;
+        }
+
         @media (max-width: 768px) {
             .hack-table {
                 display: block;
@@ -159,7 +175,10 @@
 <body>
     <div class="container">
         <h1>Hack记录</h1>
-        
+
+        <!-- 添加回到首页的按钮 -->
+        <a href="/" class="nav-button">← 返回首页</a>
+
         <div class="filters">
             <div>
                 <span class="filter-label">结果：</span>
@@ -247,15 +266,15 @@
 
     function filterHacks() {
         const verdictFilter = document.getElementById('verdict-filter').value;
-        
+
         let filteredHacks = [...allHacks];
-        
+
         if (verdictFilter) {
-            filteredHacks = filteredHacks.filter(hack => 
+            filteredHacks = filteredHacks.filter(hack =>
                 hack.verdict.toUpperCase() === verdictFilter
             );
         }
-        
+
         renderHacks(filteredHacks);
     }
 
