@@ -69,6 +69,7 @@
                         <option value="Idleness Limit Exceeded">Idleness Limit Exceeded</option>
                         <option value="Presentation Error">Presentation Error</option>
                         <option value="Partial Solution">Partial Solution</option>
+                        <option value="Hack">Hack</option>
                     </select>
                 </div>
                 <button onclick="loadSubmissions()">筛选</button>
@@ -87,6 +88,7 @@
                             <th>内存</th>
                             <th>通过测试</th>
                             <th>提交时间</th>
+                            <th>操作</th>
                         </tr>
                     </thead>
                     <tbody id="submissions-table-body">
@@ -150,23 +152,25 @@
                         return;
                     }
                     
-                    result.submissions.forEach(submission => {
-                        const verdictClass = getVerdictClass(submission.verdict);
-                        
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${submission.submission_id}</td>
-                            <td>${submission.handle}</td>
-                            <td>${submission.problem_title}</td>
-                            <td>${submission.language}</td>
-                            <td class="${verdictClass}">${submission.verdict}</td>
-                            <td>${submission.time_consumed}ms</td>
-                            <td>${Math.floor(submission.memory_consumed / 1024)}MB</td>
-                            <td>${submission.passed_tests || 0}</td>
-                            <td>${submission.submission_time}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
+                        result.submissions.forEach(submission => {
+                            const verdictClass = getVerdictClass(submission.verdict);
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${submission.submission_id}</td>
+                                <td>${submission.handle}</td>
+                                <td>${submission.problem_title}</td>
+                                <td>${submission.language}</td>
+                                <td class="${verdictClass}">${submission.verdict}</td>
+                                <td>${submission.time_consumed}ms</td>
+                                <td>${Math.floor(submission.memory_consumed / 1024)}MB</td>
+                                <td>${submission.passed_tests || 0}</td>
+                                <td>${submission.submission_time}</td>
+                                <td>
+                                    <a href="/submission/${submission.submission_id}" class="btn">详情</a>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
                 } else {
                     alert('加载提交记录失败: ' + result.message);
                 }

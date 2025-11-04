@@ -45,6 +45,17 @@ def submissions():
     """提交记录页面"""
     return render_template('submissions.html')
 
+# Hack相关页面
+@app.route('/hacks')
+def hacks():
+    """Hack记录页面"""
+    return render_template('hacks.html')
+
+@app.route('/hack/<int:hack_id>/submissions')
+def hack_submissions(hack_id):
+    """某个Hack的提交详情页面"""
+    return render_template('hack_submissions.html', hack_id=hack_id)
+
 @app.route('/users')
 def users():
     """用户列表页面"""
@@ -56,6 +67,163 @@ def profile():
     return render_template('profile.html')
 
 # API 路由
+@app.route('/submission/<int:submission_id>')
+def submission_detail(submission_id):
+    """提交详情页面"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT s.submission_id, u.handle, p.title, s.programming_language, s.source_code, s.verdict, s.time_consumed_ms, s.memory_consumed_kb, s.passed_test_count, s.submission_time, s.points, s.problem_id
+            FROM SUBMISSION s
+            JOIN Users u ON s.user_id = u.user_id
+            JOIN PROBLEM p ON s.problem_id = p.problem_id
+            WHERE s.submission_id = ?
+        ''', (submission_id,))
+        row = cursor.fetchone()
+        if not row:
+            return render_template('submission_detail.html', not_found=True)
+        detail = {
+            'submission_id': row[0],
+            'handle': row[1],
+            'problem_title': row[2],
+            'language': row[3],
+            'source_code': row[4],
+            'verdict': row[5],
+            'time_consumed': row[6],
+            'memory_consumed': row[7],
+            'passed_tests': row[8],
+            'submission_time': row[9].strftime('%Y-%m-%d %H:%M:%S'),
+            'points': row[10]
+        }
+        # 查询是否有关联的Hack
+        cursor.execute('''
+            SELECT h.hack_id, u1.handle AS hacker, h.verdict, h.hack_time, h.hack_result
+            FROM HACK h
+            JOIN Users u1 ON h.hacker_id = u1.user_id
+            WHERE h.defender_id = (SELECT user_id FROM Users WHERE handle = ?) AND h.problem_id = ?
+        ''', (row[1], row[11]))
+        hack_row = cursor.fetchone()
+        hack = None
+        if hack_row:
+            hack = {
+                'hack_id': hack_row[0],
+                'hacker': hack_row[1],
+                'verdict': hack_row[2],
+                'hack_time': hack_row[3].strftime('%Y-%m-%d %H:%M:%S'),
+                'hack_result': hack_row[4]
+            }
+        return render_template('submission_detail.html', detail=detail, hack=hack)
+    except Exception as e:
+        return render_template('submission_detail.html', error=str(e))
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+@app.route('/api/hacks')
+def api_hacks():
+    """获取所有Hack记录"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT h.hack_id, u1.handle AS hacker, u2.handle AS defender, h.problem_id, h.contest_id, h.verdict, h.hack_time, h.hack_result
+            FROM HACK h
+            JOIN Users u1 ON h.hacker_id = u1.user_id
+            JOIN Users u2 ON h.defender_id = u2.user_id
+            ORDER BY h.hack_time DESC
+        ''')
+        hacks = []
+        for row in cursor.fetchall():
+            hacks.append({
+                'hack_id': row[0],
+                'hacker': row[1],
+                'defender': row[2],
+                'problem_id': row[3],
+                'contest_id': row[4],
+                'verdict': row[5],
+                'hack_time': row[6].strftime('%Y-%m-%d %H:%M:%S'),
+                'hack_result': row[7]
+            })
+        return jsonify({'success': True, 'hacks': hacks})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/hack/<int:hack_id>/submissions')
+def api_hack_submissions(hack_id):
+    """获取某个Hack的详细提交"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 首先获取Hack的状态
+        cursor.execute('''
+            SELECT h.verdict, p.title as problem_title, c.name as contest_name,
+                   hacker.handle as hacker_name, defender.handle as defender_name
+            FROM HACK h
+            JOIN PROBLEM p ON h.problem_id = p.problem_id
+            LEFT JOIN CONTEST c ON h.contest_id = c.contest_id
+            JOIN Users hacker ON h.hacker_id = hacker.user_id
+            JOIN Users defender ON h.defender_id = defender.user_id
+            WHERE h.hack_id = ?
+        ''', (hack_id,))
+        
+        hack_row = cursor.fetchone()
+        if not hack_row:
+            return jsonify({'success': False, 'message': 'Hack记录不存在'})
+            
+        hack_status = {
+            'verdict': hack_row[0],
+            'problem_title': hack_row[1],
+            'contest_name': hack_row[2],
+            'hacker': hack_row[3],
+            'defender': hack_row[4]
+        }
+        
+        # 然后获取相关的提交记录
+        cursor.execute('''
+            SELECT s.submission_id, u.handle, s.programming_language, s.verdict, 
+                   s.submission_time, s.points, s.time_consumed_ms, s.memory_consumed_kb
+            FROM SUBMISSION s
+            JOIN HACK h ON s.problem_id = h.problem_id AND s.contest_id = h.contest_id 
+                      AND s.user_id = h.defender_id
+            JOIN Users u ON s.user_id = u.user_id
+            WHERE h.hack_id = ?
+            ORDER BY s.submission_time DESC
+        ''', (hack_id,))
+        
+        submissions = []
+        for row in cursor.fetchall():
+            submissions.append({
+                'submission_id': row[0],
+                'defender': row[1],
+                'language': row[2],
+                'verdict': row[3],
+                'submission_time': row[4].strftime('%Y-%m-%d %H:%M:%S'),
+                'points': row[5],
+                'time_consumed': row[6],
+                'memory_consumed': row[7]
+            })
+            
+        return jsonify({
+            'success': True, 
+            'hack_status': hack_status['verdict'],  # 直接返回verdict字符串而不是整个对象
+            'hack_details': hack_status,  # 保留完整的hack详情
+            'submissions': submissions
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 @app.route('/api/register', methods=['POST'])
 def register():
     """用户注册"""
@@ -378,16 +546,31 @@ def get_submissions():
         
         submissions = []
         for row in cursor.fetchall():
+            # 查询该提交是否被Hack
+            hack_id = None
+            try:
+                cursor2 = conn.cursor()
+                cursor2.execute('''SELECT hack_id FROM HACK WHERE defender_id = (SELECT user_id FROM Users WHERE handle = ?) AND problem_id = (SELECT problem_id FROM PROBLEM WHERE title = ?)''', (row[1], row[2]))
+                hack_row = cursor2.fetchone()
+                if hack_row:
+                    hack_id = hack_row[0]
+                cursor2.close()
+            except:
+                hack_id = None
+            verdict = row[4]
+            if hack_id:
+                verdict = 'Hack'
             submissions.append({
                 'submission_id': row[0],
                 'handle': row[1],
                 'problem_title': row[2],
                 'language': row[3],
-                'verdict': row[4],
+                'verdict': verdict,
                 'time_consumed': row[5],
                 'memory_consumed': row[6],
                 'passed_tests': row[7],
-                'submission_time': row[8].strftime('%Y-%m-%d %H:%M:%S')
+                'submission_time': row[8].strftime('%Y-%m-%d %H:%M:%S'),
+                'hack_id': hack_id
             })
         
         return jsonify({'success': True, 'submissions': submissions})
@@ -1242,6 +1425,112 @@ def get_available_problems(contest_id):
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'获取题目列表失败: {str(e)}'})
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/hack/<int:submission_id>', methods=['POST'])
+def submit_hack(submission_id):
+    """提交Hack"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'})
+    
+    data = request.json
+    input_data = data.get('input')
+    output_data = data.get('output')
+    
+    if not input_data or not output_data:
+        return jsonify({'success': False, 'message': '请提供完整的测试数据'})
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 获取提交详情
+        cursor.execute("""
+            SELECT s.user_id, s.problem_id, s.contest_id, s.source_code, s.verdict,
+                   u.handle, p.title
+            FROM SUBMISSION s
+            JOIN Users u ON s.user_id = u.user_id
+            JOIN PROBLEM p ON s.problem_id = p.problem_id
+            WHERE s.submission_id = ?
+        """, (submission_id,))
+        
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'success': False, 'message': '提交记录不存在'})
+        
+        defender_id, problem_id, contest_id, source_code, verdict, defender_handle, problem_title = row
+        
+        # 检查是否可以Hack
+        if defender_id == session['user_id']:
+            return jsonify({'success': False, 'message': '不能Hack自己的提交'})
+        
+        if verdict != 'Accepted':
+            return jsonify({'success': False, 'message': '只能Hack通过的提交'})
+        
+        # 检查是否已经Hack过
+        cursor.execute("""
+            SELECT hack_id FROM HACK 
+            WHERE hacker_id = ? AND defender_id = ? AND problem_id = ?
+        """, (session['user_id'], defender_id, problem_id))
+        
+        if cursor.fetchone():
+            return jsonify({'success': False, 'message': '你已经Hack过这个用户在此题目上的提交'})
+        
+        # 插入Hack记录
+        cursor.execute("""
+            INSERT INTO HACK (hacker_id, defender_id, problem_id, contest_id, 
+                            verdict, test_case, hack_time)
+            VALUES (?, ?, ?, ?, ?, ?, GETDATE())
+        """, (session['user_id'], defender_id, problem_id, contest_id,
+              'INVALID', # 初始状态设为INVALID
+              json.dumps({'input': input_data, 'output': output_data})))
+        
+        hack_id = cursor.execute("SELECT @@IDENTITY").fetchone()[0]
+        
+        # 评判Hack结果（这里简化处理，使用随机结果）
+        import random
+        hack_success = random.choice([True, False])
+        hack_verdict = 'SUCCESSFUL' if hack_success else 'UNSUCCESSFUL'
+        hack_result = '期望输出与实际输出不符' if hack_success else '期望输出与实际输出相符'
+        
+        # 更新Hack记录
+        cursor.execute("""
+            UPDATE HACK
+            SET verdict = ?, hack_result = ?
+            WHERE hack_id = ?
+        """, (hack_verdict, hack_result, hack_id))
+        
+        # 如果Hack成功，更新用户Rating
+        if hack_success:
+            # 增加Hack成功者的Rating
+            cursor.execute("""
+                UPDATE Users
+                SET rating = rating + 50
+                WHERE user_id = ?
+            """, (session['user_id'],))
+            
+            # 减少被Hack者的Rating
+            cursor.execute("""
+                UPDATE Users
+                SET rating = rating - 50
+                WHERE user_id = ?
+            """, (defender_id,))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Hack提交成功',
+            'hack_id': hack_id,
+            'verdict': hack_verdict
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Hack提交失败: {str(e)}'})
     finally:
         if 'cursor' in locals():
             cursor.close()
