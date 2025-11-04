@@ -676,25 +676,25 @@ def main():
 
     try:
         # 1. 爬取并插入用户数据
-        users = crawler.get_users(20000)
+        users = crawler.get_users(200)
         if users:
             db_manager.insert_users(users)
 
         # 2. 爬取并插入比赛数据
         contests = crawler.get_contests()
         if contests:
-            db_manager.insert_contests(contests[:5000])  # 减少比赛数量以便测试
+            db_manager.insert_contests(contests[:50])  # 减少比赛数量以便测试
 
         # 3. 爬取并插入题目数据
         problems, stats = crawler.get_problems()
         if problems:
-            db_manager.insert_problems(problems[:10000], stats)  # 减少题目数量以便测试
+            db_manager.insert_problems(problems[:100], stats)  # 减少题目数量以便测试
 
         # 4. 插入比赛用户关系
         db_manager.insert_contest_users(crawler)
 
         # 5. 插入提交记录
-        # db_manager.insert_submissions(crawler)
+        db_manager.insert_submissions(crawler)
 
         print("=== 数据爬取和插入完成 ===")
 
