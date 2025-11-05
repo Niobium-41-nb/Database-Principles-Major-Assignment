@@ -297,11 +297,11 @@ class DatabaseManager:
 
                 contest_id = contest_map.get(problem.get('contestId'), None)
 
+                # 注意：移除了 accepted_count 和 submission_count 字段
                 self.cursor.execute("""
                     INSERT INTO PROBLEM (problem_id, contest_id, problem_index, title, 
-                                      time_limit_ms, memory_limit_kb, difficulty,
-                                      accepted_count, submission_count)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                      time_limit_ms, memory_limit_kb, difficulty)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                                     problem_id,
                                     contest_id,
@@ -309,9 +309,7 @@ class DatabaseManager:
                                     problem['name'],
                                     problem.get('timeLimitMillis', 2000),
                                     problem.get('memoryLimitBytes', 256000) // 1024,
-                                    problem.get('rating', 0),
-                                    stats.get('solvedCount', 0),
-                                    stats.get('solvedCount', 0) + random.randint(0, 100)
+                                    problem.get('rating', 0)
                                     )
                 inserted_count += 1
 
@@ -427,6 +425,7 @@ class DatabaseManager:
                         creation_time = submission.get('creationTimeSeconds', time.time())
                         relative_time = submission.get('relativeTimeSeconds', 0)
 
+                        # 注意：移除了 points 字段
                         self.cursor.execute("""
                             INSERT INTO SUBMISSION (user_id, problem_id, contest_id, 
                                                 programming_language, source_code, 
@@ -590,7 +589,123 @@ class DatabaseManager:
         print(f"成功插入 {inserted_count} 个比赛用户关系")
         return inserted_count
 
-    
+    def insert_hacks(self):
+        """插入Hack数据（基于现有提交记录）"""
+        inserted_count = 0
+        print("开始插入Hack数据...")
+        
+        try:
+            # 获取已存在的提交记录（只获取Accepted状态的提交）
+            self.cursor.execute("""
+                SELECT s.submission_id, s.user_id, s.problem_id, s.contest_id, u.handle
+                FROM SUBMISSION s
+                JOIN Users u ON s.user_id = u.user_id
+                WHERE s.verdict = 'Accepted'
+                ORDER BY s.submission_time DESC
+            """)
+            
+            accepted_submissions = self.cursor.fetchall()
+            
+            if not accepted_submissions:
+                print("没有找到可用的Accepted提交记录")
+                return 0
+            
+            # 获取可用的黑客用户
+            self.cursor.execute("SELECT user_id, handle FROM Users WHERE rating > 2000")
+            hackers = self.cursor.fetchall()
+            
+            if not hackers:
+                print("没有找到高评分用户作为黑客")
+                return 0
+            
+            # 为每个黑客随机选择一些提交进行Hack
+            for hacker_id, hacker_handle in hackers[:10]:  # 只取前10个黑客
+                hack_count = random.randint(1, 5)
+                targets = random.sample(accepted_submissions, min(hack_count, len(accepted_submissions)))
+                
+                for target in targets:
+                    try:
+                        submission_id, defender_id, problem_id, contest_id, defender_handle = target
+                        
+                        # 确保黑客不是Hack自己
+                        if hacker_id == defender_id:
+                            continue
+                            
+                        # 检查是否已经Hack过这个提交
+                        self.cursor.execute("""
+                            SELECT hack_id FROM HACK 
+                            WHERE hacker_id = ? AND submission_id = ?
+                        """, hacker_id, submission_id)
+                        
+                        if self.cursor.fetchone():
+                            continue
+                        
+                        # 随机生成Hack结果
+                        verdicts = ['SUCCESSFUL', 'UNSUCCESSFUL', 'INVALID']
+                        weights = [0.3, 0.5, 0.2]  # 权重分布
+                        verdict = random.choices(verdicts, weights=weights)[0]
+                        
+                        # 生成相应的Hack结果描述
+                        if verdict == 'SUCCESSFUL':
+                            hack_result = f'在测试用例上失败：期望输出与实际输出不符'
+                        elif verdict == 'UNSUCCESSFUL':
+                            hack_result = f'Hack失败：代码在所有测试用例上正确运行'
+                        else:
+                            hack_result = f'无效的Hack：测试用例不符合规范'
+                        
+                        # 生成测试用例数据
+                        test_case = json.dumps({
+                            'input': f'随机测试输入 {random.randint(1, 100)}',
+                            'output': f'期望输出 {random.randint(1, 100)}'
+                        })
+                        
+                        # 生成Hack时间（在提交时间之后）
+                        self.cursor.execute("SELECT submission_time FROM SUBMISSION WHERE submission_id = ?", submission_id)
+                        submission_time = self.cursor.fetchone()[0]
+                        hack_time = submission_time + timedelta(minutes=random.randint(5, 60))
+                        
+                        self.cursor.execute("""
+                            INSERT INTO HACK (hacker_id, submission_id, verdict, test_case, 
+                                            hack_time, hack_result)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, 
+                                            hacker_id,
+                                            submission_id,
+                                            verdict,
+                                            test_case,
+                                            hack_time,
+                                            hack_result
+                                            )
+                        inserted_count += 1
+                        
+                        # 如果Hack成功，更新用户评分
+                        if verdict == 'SUCCESSFUL':
+                            # 黑客加分
+                            self.cursor.execute("""
+                                UPDATE Users 
+                                SET rating = rating + 50,
+                                    max_rating = CASE WHEN rating + 50 > max_rating THEN rating + 50 ELSE max_rating END
+                                WHERE user_id = ?
+                            """, hacker_id)
+                            
+                            # 被Hack者减分
+                            self.cursor.execute("""
+                                UPDATE Users 
+                                SET rating = rating - 50
+                                WHERE user_id = ?
+                            """, defender_id)
+                            
+                    except Exception as e:
+                        print(f"插入Hack记录错误: {e}")
+                        continue
+            
+            self.conn.commit()
+            print(f"成功插入 {inserted_count} 个Hack记录")
+            return inserted_count
+            
+        except Exception as e:
+            print(f"插入Hack数据过程中发生错误: {e}")
+            return 0
 
     def get_user_contest_history(self, user_id):
         """获取用户比赛历史"""
@@ -660,6 +775,44 @@ class DatabaseManager:
             
             print(f"{rank:<4} {handle:<20} {display_name:<20} {solved:<6} {penalty:<8} {score:<6} {role:<15}")
 
+    def display_hack_statistics(self):
+        """显示Hack统计信息"""
+        try:
+            # 总Hack数量
+            self.cursor.execute("SELECT COUNT(*) FROM HACK")
+            total_hacks = self.cursor.fetchone()[0]
+            
+            # 按结果分类的Hack数量
+            self.cursor.execute("""
+                SELECT verdict, COUNT(*) as count
+                FROM HACK
+                GROUP BY verdict
+                ORDER BY count DESC
+            """)
+            verdict_stats = self.cursor.fetchall()
+            
+            # 最活跃的黑客
+            self.cursor.execute("""
+                SELECT TOP 5 u.handle, COUNT(*) as hack_count
+                FROM HACK h
+                JOIN Users u ON h.hacker_id = u.user_id
+                GROUP BY u.handle
+                ORDER BY hack_count DESC
+            """)
+            top_hackers = self.cursor.fetchall()
+            
+            print(f"\n=== Hack统计信息 ===")
+            print(f"总Hack数量: {total_hacks}")
+            print(f"\nHack结果分布:")
+            for verdict, count in verdict_stats:
+                print(f"  {verdict}: {count}")
+            
+            print(f"\n最活跃的黑客:")
+            for handle, count in top_hackers:
+                print(f"  {handle}: {count} 次Hack")
+                
+        except Exception as e:
+            print(f"显示Hack统计信息错误: {e}")
 
     def close(self):
         """关闭数据库连接"""
@@ -696,6 +849,9 @@ def main():
         # 5. 插入提交记录
         db_manager.insert_submissions(crawler)
 
+        # 6. 插入Hack数据
+        db_manager.insert_hacks()
+
         print("=== 数据爬取和插入完成 ===")
 
         # 显示统计信息
@@ -707,13 +863,20 @@ def main():
         print(f"总用户数: {user_count}")
         
         db_manager.cursor.execute("SELECT COUNT(*) FROM CONTEST")
-        contest_count = db_manager.cursor.fetchall()[0]
+        contest_count = db_manager.cursor.fetchone()[0]
         print(f"总比赛数: {contest_count}")
         
         db_manager.cursor.execute("SELECT COUNT(*) FROM CONTEST_USER")
         contest_user_count = db_manager.cursor.fetchone()[0]
         print(f"总比赛参与记录: {contest_user_count}")
         
+        db_manager.cursor.execute("SELECT COUNT(*) FROM HACK")
+        hack_count = db_manager.cursor.fetchone()[0]
+        print(f"总Hack记录: {hack_count}")
+        
+        # 显示Hack统计信息
+        db_manager.display_hack_statistics()
+
         # 获取第一个比赛并显示排名
         db_manager.cursor.execute("SELECT TOP 1 contest_id, name FROM CONTEST")
         first_contest = db_manager.cursor.fetchone()

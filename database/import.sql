@@ -65,7 +65,7 @@ VALUES
 ('combinatorics', 'Combinatorial mathematics problems');
 GO
 
--- 4. 插入题目数据 (扩展版本)
+-- 4. 插入题目数据 (扩展版本) - 移除了accepted_count和submission_count字段
 DECLARE @contest1_id BIGINT, @contest2_id BIGINT, @contest3_id BIGINT, @contest4_id BIGINT, @contest5_id BIGINT;
 SELECT @contest1_id = contest_id FROM CONTEST WHERE name = 'Codeforces Round #1000 (Div. 1)';
 SELECT @contest2_id = contest_id FROM CONTEST WHERE name = 'ICPC World Finals 2024';
@@ -73,16 +73,16 @@ SELECT @contest3_id = contest_id FROM CONTEST WHERE name = 'Educational Codeforc
 SELECT @contest4_id = contest_id FROM CONTEST WHERE name = 'Weekly Contest 350';
 SELECT @contest5_id = contest_id FROM CONTEST WHERE name = 'Google Code Jam 2024 Round 1';
 
-INSERT INTO PROBLEM (problem_id, contest_id, problem_index, title, statement, input_specification, output_specification, sample_tests, time_limit_ms, memory_limit_kb, difficulty, accepted_count, submission_count)
+INSERT INTO PROBLEM (problem_id, contest_id, problem_index, title, statement, input_specification, output_specification, sample_tests, time_limit_ms, memory_limit_kb, difficulty)
 VALUES 
-('CF1000A', @contest1_id, 'A', 'Watermelon', 'One hot summer day Pete and his friend Billy decided to buy a watermelon...', 'The first (and the only) input line contains integer number w (1 ≤ w ≤ 100)...', 'Print YES, if the boys can divide the watermelon into two parts...', '[{"input": "8", "output": "YES"}, {"input": "5", "output": "NO"}]', 1000, 256000, '800', 15000, 25000),
-('CF1000B', @contest1_id, 'B', 'Prime Subtraction', 'You are given two integers x and y. You can perform multiple operations...', 'The first line contains a single integer t (1 ≤ t ≤ 1000) — the number of test cases...', 'For each test case, print "YES" if you can make x equal to y...', '[{"input": "4\n100 98\n42 32\n100 100\n100 97", "output": "YES\nYES\nYES\nNO"}]', 2000, 512000, '1200', 8000, 15000),
-('CF1000C', @contest1_id, 'C', 'Complex Problem', 'This is a more complex problem for the contest...', 'Input format description...', 'Output format description...', '[{"input": "1\n2", "output": "3"}]', 3000, 1048576, '1800', 5000, 12000),
-('CF1000D', @contest1_id, 'D', 'Dynamic Programming', 'A dynamic programming problem of medium difficulty...', 'Input specification for DP problem...', 'Output specification for DP problem...', '[{"input": "5\n1 2 3 4 5", "output": "15"}]', 2000, 512000, '2000', 3000, 8000),
-('EDU200A', @contest3_id, 'A', 'Educational Problem A', 'Educational problem statement...', 'Educational input specification...', 'Educational output specification...', '[{"input": "test", "output": "result"}]', 1500, 256000, '1000', 8000, 15000),
-('EDU200B', @contest3_id, 'B', 'Educational Problem B', 'Another educational problem...', 'Input for educational problem B...', 'Output for educational problem B...', '[{"input": "3 4", "output": "7"}]', 1500, 256000, '1300', 6000, 12000),
-('WEEK350A', @contest4_id, 'A', 'Weekly Problem A', 'Weekly contest problem A...', 'Input specification...', 'Output specification...', '[{"input": "1", "output": "2"}]', 1000, 256000, '900', 7000, 10000),
-('GCJ2024R1A', @contest5_id, 'A', 'Code Jam Problem A', 'Google Code Jam problem statement...', 'Code Jam input format...', 'Code Jam output format...', '[{"input": "Case #1: test", "output": "Case #1: result"}]', 3000, 1048576, '1500', 5000, 9000);
+('CF1000A', @contest1_id, 'A', 'Watermelon', 'One hot summer day Pete and his friend Billy decided to buy a watermelon...', 'The first (and the only) input line contains integer number w (1 ≤ w ≤ 100)...', 'Print YES, if the boys can divide the watermelon into two parts...', '[{"input": "8", "output": "YES"}, {"input": "5", "output": "NO"}]', 1000, 256000, '800'),
+('CF1000B', @contest1_id, 'B', 'Prime Subtraction', 'You are given two integers x and y. You can perform multiple operations...', 'The first line contains a single integer t (1 ≤ t ≤ 1000) — the number of test cases...', 'For each test case, print "YES" if you can make x equal to y...', '[{"input": "4\n100 98\n42 32\n100 100\n100 97", "output": "YES\nYES\nYES\nNO"}]', 2000, 512000, '1200'),
+('CF1000C', @contest1_id, 'C', 'Complex Problem', 'This is a more complex problem for the contest...', 'Input format description...', 'Output format description...', '[{"input": "1\n2", "output": "3"}]', 3000, 1048576, '1800'),
+('CF1000D', @contest1_id, 'D', 'Dynamic Programming', 'A dynamic programming problem of medium difficulty...', 'Input specification for DP problem...', 'Output specification for DP problem...', '[{"input": "5\n1 2 3 4 5", "output": "15"}]', 2000, 512000, '2000'),
+('EDU200A', @contest3_id, 'A', 'Educational Problem A', 'Educational problem statement...', 'Educational input specification...', 'Educational output specification...', '[{"input": "test", "output": "result"}]', 1500, 256000, '1000'),
+('EDU200B', @contest3_id, 'B', 'Educational Problem B', 'Another educational problem...', 'Input for educational problem B...', 'Output for educational problem B...', '[{"input": "3 4", "output": "7"}]', 1500, 256000, '1300'),
+('WEEK350A', @contest4_id, 'A', 'Weekly Problem A', 'Weekly contest problem A...', 'Input specification...', 'Output specification...', '[{"input": "1", "output": "2"}]', 1000, 256000, '900'),
+('GCJ2024R1A', @contest5_id, 'A', 'Code Jam Problem A', 'Google Code Jam problem statement...', 'Code Jam input format...', 'Code Jam output format...', '[{"input": "Case #1: test", "output": "Case #1: result"}]', 3000, 1048576, '1500');
 GO
 
 -- 5. 插入题目标签关系数据 (扩展版本)
@@ -196,16 +196,26 @@ int main() { int n; cin >> n; cout << n + 1 << endl; }', 75, 'Accepted', 25, 409
 ((SELECT user_id FROM Users WHERE handle = 'benq'), 'GCJ2024R1A', @contest5_id, 'Python 3', 'print("Case #1: result")', 25, 'Accepted', 100, 8192, 1, '2024-05-01 10:30:00', 100);
 GO
 
--- 9. 插入Hack数据 (扩展版本)
-DECLARE @contest1_id BIGINT;
-SELECT @contest1_id = contest_id FROM CONTEST WHERE name = 'Codeforces Round #1000 (Div. 1)';
+-- 修改Hack数据插入部分
+DELETE FROM HACK;
+GO
 
-INSERT INTO HACK (hacker_id, defender_id, problem_id, contest_id, verdict, test_case, hack_result)
+DBCC CHECKIDENT ('HACK', RESEED, 0);
+GO
+
+-- 插入Hack数据 (使用新的表结构)
+DECLARE @submission1_id BIGINT, @submission2_id BIGINT, @submission3_id BIGINT, @submission4_id BIGINT;
+SELECT @submission1_id = submission_id FROM SUBMISSION WHERE user_id = (SELECT user_id FROM Users WHERE handle = 'alice') AND problem_id = 'CF1000A';
+SELECT @submission2_id = submission_id FROM SUBMISSION WHERE user_id = (SELECT user_id FROM Users WHERE handle = 'bob') AND problem_id = 'CF1000A';
+SELECT @submission3_id = submission_id FROM SUBMISSION WHERE user_id = (SELECT user_id FROM Users WHERE handle = 'alice') AND problem_id = 'CF1000B';
+SELECT @submission4_id = submission_id FROM SUBMISSION WHERE user_id = (SELECT user_id FROM Users WHERE handle = 'bob') AND problem_id = 'CF1000A' AND verdict = 'Time Limit Exceeded';
+
+INSERT INTO HACK (hacker_id, submission_id, verdict, test_case, hack_result)
 VALUES 
-((SELECT user_id FROM Users WHERE handle = 'tourist'), (SELECT user_id FROM Users WHERE handle = 'alice'), 'CF1000A', @contest1_id, 'SUCCESSFUL', '7', 'Expected: NO, Received: YES'),
-((SELECT user_id FROM Users WHERE handle = 'petr'), (SELECT user_id FROM Users WHERE handle = 'bob'), 'CF1000A', @contest1_id, 'UNSUCCESSFUL', '2', 'Expected: NO, Received: NO - Hack failed'),
-((SELECT user_id FROM Users WHERE handle = 'um_nik'), (SELECT user_id FROM Users WHERE handle = 'alice'), 'CF1000B', @contest1_id, 'SUCCESSFUL', '1 1', 'Expected: YES, Received: NO'),
-((SELECT user_id FROM Users WHERE handle = 'errichto'), (SELECT user_id FROM Users WHERE handle = 'bob'), 'CF1000A', @contest1_id, 'INVALID', '0', 'Invalid test case - number out of range');
+((SELECT user_id FROM Users WHERE handle = 'tourist'), @submission1_id, 'SUCCESSFUL', '{"input": "7"}', 'Expected: NO, Received: YES'),
+((SELECT user_id FROM Users WHERE handle = 'petr'), @submission2_id, 'UNSUCCESSFUL', '{"input": "2"}', 'Expected: NO, Received: NO - Hack failed'),
+((SELECT user_id FROM Users WHERE handle = 'um_nik'), @submission3_id, 'SUCCESSFUL', '{"input": "1 1"}', 'Expected: YES, Received: NO'),
+((SELECT user_id FROM Users WHERE handle = 'errichto'), @submission4_id, 'INVALID', '{"input": "0"}', 'Invalid test case - number out of range');
 GO
 
 -- 验证数据插入

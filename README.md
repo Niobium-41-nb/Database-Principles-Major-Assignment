@@ -110,145 +110,141 @@ Database-Principles-Major-Assignment/
 ```mermaid
 erDiagram
     Users {
-        bigint user_id PK
-        varchar handle UK
-        varchar email UK
-        varchar password
-        varchar name
-        int rating
-        int max_rating
-        varchar user_rank
-        varchar max_rank
-        varchar country
-        varchar city
-        varchar organization
-        varchar avatar
-        datetime2 registration_time
-        datetime2 last_online_time
-        int contribution
-        bit is_admin
-        bit is_active
+        BIGINT user_id PK
+        VARCHAR(50) handle UK
+        VARCHAR(100) email UK
+        VARCHAR(255) password
+        VARCHAR(100) name
+        INT rating
+        INT max_rating
+        VARCHAR(50) user_rank
+        VARCHAR(50) max_rank
+        VARCHAR(100) country
+        VARCHAR(100) city
+        VARCHAR(200) organization
+        VARCHAR(500) avatar
+        DATETIME2 registration_time
+        DATETIME2 last_online_time
+        INT contribution
+        BIT is_admin
+        BIT is_active
     }
 
     CONTEST {
-        bigint contest_id PK
-        varchar name
-        varchar type
-        varchar phase
-        bit frozen
-        datetime2 start_time
-        int duration_seconds
-        varchar website_url
-        text description
-        int difficulty
-        varchar kind
-        varchar icpc_region
-        varchar country
-        varchar city
-        varchar season
-        bigint created_by FK
+        BIGINT contest_id PK
+        VARCHAR(200) name
+        VARCHAR(10) type
+        VARCHAR(30) phase
+        BIT frozen
+        DATETIME2 start_time
+        INT duration_seconds
+        VARCHAR(500) website_url
+        TEXT description
+        INT difficulty
+        VARCHAR(100) kind
+        VARCHAR(100) icpc_region
+        VARCHAR(100) country
+        VARCHAR(100) city
+        VARCHAR(50) season
+        BIGINT created_by FK
     }
 
     PROBLEM {
-        varchar problem_id PK
-        bigint contest_id FK
-        varchar problem_index
-        varchar title
-        text statement
-        text input_specification
-        text output_specification
-        nvarchar sample_tests
-        text notes
-        int time_limit_ms
-        int memory_limit_kb
-        varchar difficulty
-        int accepted_count
-        int submission_count
-        datetime2 creation_time
-        bit is_visible
+        VARCHAR(50) problem_id PK
+        BIGINT contest_id FK
+        VARCHAR(10) problem_index
+        VARCHAR(300) title
+        TEXT statement
+        TEXT input_specification
+        TEXT output_specification
+        NVARCHAR(MAX) sample_tests
+        TEXT notes
+        INT time_limit_ms
+        INT memory_limit_kb
+        VARCHAR(10) difficulty
+        DATETIME2 creation_time
+        BIT is_visible
     }
 
     PROBLEM_TAG {
-        bigint tag_id PK
-        varchar name UK
-        text description
+        BIGINT tag_id PK
+        VARCHAR(50) name UK
+        TEXT description
     }
 
     PROBLEM_TAG_RELATION {
-        varchar problem_id PK,FK
-        bigint tag_id PK,FK
+        VARCHAR(50) problem_id PK,FK
+        BIGINT tag_id PK,FK
     }
 
     TEST_CASE {
-        bigint test_case_id PK
-        varchar problem_id FK
-        text input_data
-        text expected_output
-        bit is_sample
-        int test_order
+        BIGINT test_case_id PK
+        VARCHAR(50) problem_id FK
+        TEXT input_data
+        TEXT expected_output
+        BIT is_sample
+        INT test_order
     }
 
     SUBMISSION {
-        bigint submission_id PK
-        bigint user_id FK
-        varchar problem_id FK
-        bigint contest_id FK
-        varchar programming_language
-        text source_code
-        int source_length
-        varchar verdict
-        int time_consumed_ms
-        int memory_consumed_kb
-        int passed_test_count
-        nvarchar test_results
-        datetime2 submission_time
-        int relative_time
-        int points
+        BIGINT submission_id PK
+        BIGINT user_id FK
+        VARCHAR(50) problem_id FK
+        BIGINT contest_id FK
+        VARCHAR(50) programming_language
+        TEXT source_code
+        INT source_length
+        VARCHAR(50) verdict
+        INT time_consumed_ms
+        INT memory_consumed_kb
+        INT passed_test_count
+        NVARCHAR(MAX) test_results
+        DATETIME2 submission_time
+        INT relative_time
+        INT points
     }
 
     CONTEST_USER {
-        bigint contest_id PK,FK
-        bigint user_id PK,FK
-        datetime2 registration_time
-        varchar role
-        int rating_before
-        int rating_after
-        int contest_rank
-        int solved_count
-        int total_penalty
-        int scores
+        BIGINT contest_id PK,FK
+        BIGINT user_id PK,FK
+        DATETIME2 registration_time
+        VARCHAR(30) role
+        INT rating_before
+        INT rating_after
+        INT contest_rank
+        INT solved_count
+        INT total_penalty
+        INT scores
     }
 
     HACK {
-        bigint hack_id PK
-        bigint hacker_id FK
-        bigint defender_id FK
-        varchar problem_id FK
-        bigint contest_id FK
-        varchar verdict
-        text test_case
-        datetime2 hack_time
-        text hack_result
+        BIGINT hack_id PK
+        BIGINT hacker_id FK
+        BIGINT submission_id FK
+        VARCHAR(20) verdict
+        TEXT test_case
+        DATETIME2 hack_time
+        TEXT hack_result
     }
 
-    Users ||--o{ CONTEST : "created_by"
-    Users ||--o{ SUBMISSION : "submits"
-    Users ||--o{ HACK : "as_hacker"
-    Users ||--o{ HACK : "as_defender"
-    Users }o--|| CONTEST_USER : "participates_in"
+    Users ||--o{ SUBMISSION : makes
+    Users ||--o{ CONTEST : creates
+    Users ||--o{ HACK : performs
+    Users }o--|| CONTEST_USER : participates_in
     
-    CONTEST ||--o{ PROBLEM : "contains"
-    CONTEST ||--o{ SUBMISSION : "has_submissions"
-    CONTEST ||--o{ HACK : "has_hacks"
-    CONTEST }o--|| CONTEST_USER : "has_participants"
+    CONTEST ||--o{ PROBLEM : contains
+    CONTEST ||--o{ SUBMISSION : has
+    CONTEST }o--|| CONTEST_USER : involves
     
-    PROBLEM ||--o{ PROBLEM_TAG_RELATION : "has_tags"
-    PROBLEM ||--o{ TEST_CASE : "has_test_cases"
-    PROBLEM ||--o{ SUBMISSION : "has_submissions"
-    PROBLEM ||--o{ HACK : "targeted_in"
+    PROBLEM ||--o{ SUBMISSION : receives
+    PROBLEM ||--o{ TEST_CASE : has
+    PROBLEM }o--|| PROBLEM_TAG_RELATION : categorized_through
     
-    PROBLEM_TAG ||--o{ PROBLEM_TAG_RELATION : "categorizes"
+    PROBLEM_TAG }o--|| PROBLEM_TAG_RELATION : categorizes
+    
+    SUBMISSION ||--|| HACK : challenged_by
 ```
+
 
 ## 🚀 快速开始
 

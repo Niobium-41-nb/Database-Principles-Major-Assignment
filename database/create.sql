@@ -1,7 +1,5 @@
-
 USE OJ;
 GO
-
 
 -- 删除原有表（如果存在）
 IF OBJECT_ID('HACK', 'U') IS NOT NULL DROP TABLE HACK;
@@ -72,7 +70,7 @@ CREATE INDEX idx_contest_time ON CONTEST(start_time);
 CREATE INDEX idx_contest_type ON CONTEST(type);
 GO
 
--- 题目表
+-- 题目表 (移除了accepted_count和submission_count字段)
 CREATE TABLE PROBLEM (
     problem_id VARCHAR(50) PRIMARY KEY,
     contest_id BIGINT,
@@ -86,8 +84,6 @@ CREATE TABLE PROBLEM (
     time_limit_ms INT NOT NULL DEFAULT 1000,
     memory_limit_kb INT NOT NULL DEFAULT 256000,
     difficulty VARCHAR(10),
-    accepted_count INT DEFAULT 0,
-    submission_count INT DEFAULT 0,
     creation_time DATETIME2 DEFAULT GETDATE(),
     is_visible BIT DEFAULT 1,
     FOREIGN KEY (contest_id) REFERENCES CONTEST(contest_id)
@@ -165,6 +161,7 @@ GO
 CREATE INDEX idx_submission_user_time ON SUBMISSION(user_id, submission_time);
 CREATE INDEX idx_submission_contest ON SUBMISSION(contest_id, problem_id);
 CREATE INDEX idx_submission_verdict ON SUBMISSION(verdict);
+CREATE INDEX idx_submission_problem_verdict ON SUBMISSION(problem_id, verdict); -- 新增索引用于统计
 GO
 
 -- 比赛用户关系表
@@ -189,25 +186,26 @@ GO
 CREATE INDEX idx_contest_user_role ON CONTEST_USER(role);
 GO
 
--- Hack表
+-- 修改Hack表结构
+IF OBJECT_ID('HACK', 'U') IS NOT NULL DROP TABLE HACK;
+GO
+
+-- 新的Hack表结构
 CREATE TABLE HACK (
     hack_id BIGINT IDENTITY(1,1) PRIMARY KEY,
     hacker_id BIGINT NOT NULL,
-    defender_id BIGINT NOT NULL,
-    problem_id VARCHAR(50) NOT NULL,
-    contest_id BIGINT NOT NULL,
+    submission_id BIGINT NOT NULL,  -- 新增：被Hack的提交记录ID
     verdict VARCHAR(20) NOT NULL CHECK (verdict IN ('SUCCESSFUL', 'UNSUCCESSFUL', 'INVALID')),
     test_case TEXT NOT NULL,
     hack_time DATETIME2 DEFAULT GETDATE(),
     hack_result TEXT,
     FOREIGN KEY (hacker_id) REFERENCES Users(user_id),
-    FOREIGN KEY (defender_id) REFERENCES Users(user_id),
-    FOREIGN KEY (problem_id) REFERENCES PROBLEM(problem_id),
-    FOREIGN KEY (contest_id) REFERENCES CONTEST(contest_id)
+    FOREIGN KEY (submission_id) REFERENCES SUBMISSION(submission_id) ON DELETE CASCADE
 );
 GO
 
 -- 创建Hack表索引
 CREATE INDEX idx_hack_time ON HACK(hack_time);
 CREATE INDEX idx_hack_verdict ON HACK(verdict);
+CREATE INDEX idx_hack_submission ON HACK(submission_id);
 GO
