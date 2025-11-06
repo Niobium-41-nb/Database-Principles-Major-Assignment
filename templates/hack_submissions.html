@@ -220,7 +220,16 @@
     fetch(`/api/hack/${hackId}/submissions`).then(res => res.json()).then(data => {
         if(data.success) {
             const container = document.getElementById('submission-list');
-            if (data.submissions.length === 0) {
+
+            // 更新Hack状态
+            const hackStatus = document.getElementById('hack-status');
+            if (data.hack_status) {
+                hackStatus.textContent = getVerdictText(data.hack_status);
+                hackStatus.className = `info-value ${getVerdictClass(data.hack_status)}`;
+            }
+
+            // 检查是否有提交数据
+            if (!data.submission) {
                 container.innerHTML = `
                     <div class="submission-card">
                         <div class="submission-body">
@@ -233,54 +242,47 @@
                 return;
             }
 
-            // 更新Hack状态
-            const hackStatus = document.getElementById('hack-status');
-            if (data.hack_status) {
-                hackStatus.textContent = getVerdictText(data.hack_status);
-                hackStatus.className = `info-value ${getVerdictClass(data.hack_status)}`;
-            }
-
-            data.submissions.forEach(sub => {
-                const submissionCard = document.createElement('div');
-                submissionCard.className = 'submission-card';
-                submissionCard.innerHTML = `
-                    <div class="submission-header">
-                        <div class="submission-id">
-                            提交 #${sub.submission_id}
-                        </div>
-                        <div class="submission-time">
-                            ${sub.submission_time}
+            // 渲染单个提交记录
+            const sub = data.submission;
+            const submissionCard = document.createElement('div');
+            submissionCard.className = 'submission-card';
+            submissionCard.innerHTML = `
+                <div class="submission-header">
+                    <div class="submission-id">
+                        提交 #${sub.submission_id}
+                    </div>
+                    <div class="submission-time">
+                        ${sub.submission_time}
+                    </div>
+                </div>
+                <div class="submission-body">
+                    <div class="submission-detail">
+                        <div class="info-label">提交者</div>
+                        <div class="info-value">
+                            <a href="/users/${sub.defender}" class="user-link">${sub.defender}</a>
                         </div>
                     </div>
-                    <div class="submission-body">
-                        <div class="submission-detail">
-                            <div class="info-label">提交者</div>
-                            <div class="info-value">
-                                <a href="/users/${sub.defender}" class="user-link">${sub.defender}</a>
-                            </div>
-                        </div>
-                        <div class="submission-detail">
-                            <div class="info-label">语言</div>
-                            <div class="info-value">
-                                <span class="language-badge">${sub.language}</span>
-                            </div>
-                        </div>
-                        <div class="submission-detail">
-                            <div class="info-label">判题结果</div>
-                            <div class="info-value">
-                                <span class="verdict-badge ${getVerdictClass(sub.verdict)}">${getVerdictText(sub.verdict)}</span>
-                            </div>
-                        </div>
-                        <div class="submission-detail">
-                            <div class="info-label">得分</div>
-                            <div class="info-value">
-                                <span class="points-badge">${sub.points || 0}</span>
-                            </div>
+                    <div class="submission-detail">
+                        <div class="info-label">语言</div>
+                        <div class="info-value">
+                            <span class="language-badge">${sub.language}</span>
                         </div>
                     </div>
-                `;
-                container.appendChild(submissionCard);
-            });
+                    <div class="submission-detail">
+                        <div class="info-label">判题结果</div>
+                        <div class="info-value">
+                            <span class="verdict-badge ${getVerdictClass(sub.verdict)}">${getVerdictText(sub.verdict)}</span>
+                        </div>
+                    </div>
+                    <div class="submission-detail">
+                        <div class="info-label">得分</div>
+                        <div class="info-value">
+                            <span class="points-badge">${sub.points || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(submissionCard);
         } else {
             document.getElementById('submission-list').innerHTML = `
                 <div class="submission-card">
