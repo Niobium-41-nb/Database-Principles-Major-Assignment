@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户列表 - 在线判题系统</title>
+    <link rel="stylesheet" href="css/users.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile" id="profile-link">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>用户列表</h2>
+
+            <div class="search-box">
+                <input type="text" id="search-input" class="search-input" placeholder="搜索用户..." onkeyup="filterUsers()">
+            </div>
+
+            <div class="filters">
+                <select id="rank-filter" class="filter-select" onchange="filterUsers()">
+                    <option value="">所有等级</option>
+                    <option value="Newbie">Newbie</option>
+                    <option value="Pupil">Pupil</option>
+                    <option value="Specialist">Specialist</option>
+                    <option value="Expert">Expert</option>
+                    <option value="Candidate Master">Candidate Master</option>
+                    <option value="Master">Master</option>
+                    <option value="International Master">International Master</option>
+                    <option value="Grandmaster">Grandmaster</option>
+                </select>
+
+                <select id="rating-filter" class="filter-select" onchange="filterUsers()">
+                    <option value="">所有评分</option>
+                    <option value="0-1199">0-1199</option>
+                    <option value="1200-1399">1200-1399</option>
+                    <option value="1400-1599">1400-1599</option>
+                    <option value="1600-1899">1600-1899</option>
+                    <option value="1900-2399">1900-2399</option>
+                    <option value="2400+">2400+</option>
+                </select>
+
+                <select id="sort-filter" class="filter-select" onchange="sortUsers()">
+                    <option value="rating-desc">评分降序</option>
+                    <option value="rating-asc">评分升序</option>
+                    <option value="registration-desc">注册时间降序</option>
+                    <option value="registration-asc">注册时间升序</option>
+                </select>
+
+                <select id="admin-filter" class="filter-select" onchange="filterUsers()">
+                    <option value="">所有用户</option>
+                    <option value="admin">仅管理员</option>
+                    <option value="non-admin">非管理员</option>
+                </select>
+            </div>
+
+            <div id="users-list" class="user-list">
+                <!-- 用户数据将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/users.js"></script>
+</body>
+</html>

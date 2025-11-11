@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交记录 - 在线判题系统</title>
+    <link rel="stylesheet" href="css/submissions.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile" id="profile-link">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>提交记录</h2>
+            
+            <!-- 筛选器 -->
+            <div class="filters">
+                <div class="filter-item">
+                    <label for="user-filter">用户:</label>
+                    <input type="text" id="user-filter" placeholder="用户名">
+                </div>
+                <div class="filter-item">
+                    <label for="problem-filter">题目:</label>
+                    <input type="text" id="problem-filter" placeholder="题目标题">
+                </div>
+                <div class="filter-item">
+                    <label for="verdict-filter">结果:</label>
+                    <select id="verdict-filter">
+                        <option value="">所有结果</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Wrong Answer">Wrong Answer</option>
+                        <option value="Time Limit Exceeded">Time Limit Exceeded</option>
+                        <option value="Memory Limit Exceeded">Memory Limit Exceeded</option>
+                        <option value="Runtime Error">Runtime Error</option>
+                        <option value="Compilation Error">Compilation Error</option>
+                        <option value="Idleness Limit Exceeded">Idleness Limit Exceeded</option>
+                        <option value="Presentation Error">Presentation Error</option>
+                        <option value="Partial Solution">Partial Solution</option>
+                    </select>
+                </div>
+                <button onclick="loadSubmissions()">筛选</button>
+            </div>
+
+            <div id="submissions-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>提交ID</th>
+                            <th>用户</th>
+                            <th>题目</th>
+                            <th>语言</th>
+                            <th>结果</th>
+                            <th>时间</th>
+                            <th>内存</th>
+                            <th>通过测试</th>
+                            <th>提交时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissions-table-body">
+                        <!-- 提交数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/submissions.js"></script>
+</body>
+</html>

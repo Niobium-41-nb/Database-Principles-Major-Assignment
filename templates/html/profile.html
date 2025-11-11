@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人资料 - 在线判题系统</title>
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile" id="profile-link">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="login-prompt" class="card" style="display: none;">
+            <h2>请先登录</h2>
+            <p>您需要登录后才能查看和修改个人资料。</p>
+            <button onclick="location.href='/'" class="btn">返回首页</button>
+        </div>
+
+        <div id="profile-content" style="display: none;">
+            <div class="card">
+                <div class="profile-header">
+                    <div class="avatar" id="user-avatar">U</div>
+                    <div class="user-info">
+                        <h1 id="user-handle">用户名</h1>
+                        <div id="user-rating" class="rating-low">0</div>
+                    </div>
+                </div>
+
+                <div class="user-meta" id="user-meta">
+                    <!-- 用户信息将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('edit-profile')">编辑资料</div>
+                    <div class="tab" onclick="switchTab('change-password')">修改密码</div>
+                </div>
+
+                <div id="edit-profile" class="tab-content active">
+                    <div class="card">
+                        <h2 class="section-title">编辑个人资料</h2>
+                        <div id="profile-message"></div>
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label class="form-label">姓名</label>
+                                <input type="text" id="name" class="form-input" placeholder="请输入您的姓名">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">国家</label>
+                                <input type="text" id="country" class="form-input" placeholder="请输入您的国家">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">城市</label>
+                                <input type="text" id="city" class="form-input" placeholder="请输入您的城市">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">组织/学校</label>
+                                <input type="text" id="organization" class="form-input" placeholder="请输入您的组织或学校">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">头像URL</label>
+                                <input type="text" id="avatar" class="form-input" placeholder="请输入头像图片的URL">
+                            </div>
+                            <button type="submit" class="btn">保存更改</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="change-password" class="tab-content">
+                    <div class="card">
+                        <h2 class="section-title">修改密码</h2>
+                        <div id="password-message"></div>
+                        <form id="password-form">
+                            <div class="form-group">
+                                <label class="form-label">原密码</label>
+                                <input type="password" id="old-password" class="form-input" placeholder="请输入原密码">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">新密码</label>
+                                <input type="password" id="new-password" class="form-input" placeholder="请输入新密码">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">确认新密码</label>
+                                <input type="password" id="confirm-password" class="form-input" placeholder="请再次输入新密码">
+                            </div>
+                            <button type="submit" class="btn">修改密码</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/profile.js"></script>
+</body>
+</html>

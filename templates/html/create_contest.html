@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建比赛 - 在线判题系统</title>
+    <link rel="stylesheet" href="css/create_contest.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">创建新比赛</h2>
+
+            <form id="contest-form">
+                <div class="form-section">
+                    <h3>基本信息</h3>
+
+                    <div class="form-group">
+                        <label for="contest-name">比赛名称 *</label>
+                        <input type="text" id="contest-name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contest-type">比赛类型 *</label>
+                        <select id="contest-type" name="type" required>
+                            <option value="CF">Codeforces式</option>
+                            <option value="IOI">IOI式</option>
+                            <option value="ICPC">ICPC式</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contest-phase">比赛阶段</label>
+                        <select id="contest-phase" name="phase">
+                            <option value="BEFORE">未开始</option>
+                            <option value="CODING">进行中</option>
+                            <option value="FINISHED">已结束</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start-time">开始时间 *</label>
+                        <input type="datetime-local" id="start-time" name="start_time" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">持续时间（秒） *</label>
+                        <input type="number" id="duration" name="duration_seconds" value="7200" min="1800" step="900" required>
+                        <small style="color: #666; font-size: 0.875rem;">例如：7200秒 = 2小时</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>比赛描述</h3>
+
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <textarea id="description" name="description" placeholder="输入比赛描述..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="difficulty">难度评级</label>
+                        <input type="number" id="difficulty" name="difficulty" min="0" max="10" step="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kind">比赛种类</label>
+                        <input type="text" id="kind" name="kind" placeholder="例如：常规比赛、训练赛等">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>比赛题目</h3>
+
+                    <div id="contest-problems-selection">
+                        <div style="margin-bottom: 1rem;">
+                            <button type="button" id="add-problem-btn" class="btn btn-secondary">选择题目</button>
+                            <span style="margin-left: 1rem; color: #666;" id="selected-count">已选择 0 个题目</span>
+                        </div>
+
+                        <div id="selected-problems-list" class="empty-state">
+                            尚未选择任何题目
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="text-align: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-success" style="padding: 1rem 2rem;">创建比赛</button>
+                    <a href="/contests" class="btn btn-secondary" style="margin-left: 1rem;">取消</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/create_contest.js"></script>
+</body>
+</html>

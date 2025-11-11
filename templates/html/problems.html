@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题目列表 - 在线判题系统</title>
+    <link rel="stylesheet" href="css/problems.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <h1>在线判题系统</h1>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/problems">题目</a>
+                <a href="/contests">比赛</a>
+                <a href="/submissions">提交记录</a>
+                <a href="/users">用户</a>
+                <a href="/profile" id="profile-link">个人资料</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="header-row">
+                <h2>题目列表</h2>
+                <a href="/create-problem" class="btn btn-create" id="create-problem-btn">创建题目</a>
+            </div>
+            <div id="problems-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>题目ID</th>
+                            <th>标题</th>
+                            <th>难度</th>
+                            <th>通过率</th>
+                            <th>时间限制</th>
+                            <th>内存限制</th>
+                        </tr>
+                    </thead>
+                    <tbody id="problems-table-body">
+                        <!-- 题目数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div style="background: white; width: 300px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+            <h3>登录</h3>
+            <input type="text" id="login-handle" placeholder="用户名" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="password" id="login-password" placeholder="密码" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <button onclick="login()" class="btn">登录</button>
+            <button onclick="hideLogin()" class="btn" style="background: #95a5a6;">取消</button>
+        </div>
+    </div>
+
+    <!-- 注册模态框 -->
+    <div id="register-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div style="background: white; width: 300px; margin: 100px auto; padding: 2rem; border-radius: 8px;">
+            <h3>注册</h3>
+            <input type="text" id="register-handle" placeholder="用户名" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="email" id="register-email" placeholder="邮箱" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="text" id="register-name" placeholder="姓名（可选）" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <input type="password" id="register-password" placeholder="密码" style="width: 100%; margin: 0.5rem 0; padding: 0.5rem;">
+            <button onclick="register()" class="btn">注册</button>
+            <button onclick="hideRegister()" class="btn" style="background: #95a5a6;">取消</button>
+        </div>
+    </div>
+
+    <script src="js/problems.js"></script>
+</body>
+</html>
