@@ -4,7 +4,7 @@
 
 ## 📋 项目简介
 
-这是一个基于 **Codeforces** 平台功能设计的在线判题系统（OJ），使用 **Microsoft SQL Server** 作为数据库，**Python Flask** 作为后端框架，前端采用原生 HTML/CSS/JavaScript 实现。
+这是一个基于 **Codeforces** 平台功能设计的在线判题系统（OJ），使用 **Microsoft SQL Server** 作为数据库，**Python Flask** 作为后端框架，前端采用原生 HTML/../static/css/JavaScript 实现。
 
 ## 🏗️ 系统架构
 
