@@ -1,0 +1,43 @@
+/* index.css - 首页专用样式 */
+
+.auth-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.auth-content {
+    background: white;
+    width: 300px;
+    margin: 100px auto;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+.auth-input {
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.user-info {
+    display: none;
+    align-items: center;
+}
+
+.user-handle {
+    color: white;
+    margin-right: 1rem;
+}
+
+.guest-buttons {
+    display: flex;
+    gap: 0.5rem;
+}

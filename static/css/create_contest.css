@@ -1,0 +1,265 @@
+/* create_contest.css - 创建比赛页面专用样式 */
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body { 
+    font-family: Arial, sans-serif; 
+    background: #f5f5f5; 
+}
+
+.navbar { 
+    background: #2c3e50; 
+    color: white; 
+    padding: 1rem; 
+}
+
+.nav-content { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    display: flex; 
+    justify-content: space-between; 
+}
+
+.nav-links a { 
+    color: white; 
+    text-decoration: none; 
+    margin-left: 1rem; 
+}
+
+.container { 
+    max-width: 800px; 
+    margin: 2rem auto; 
+    padding: 0 1rem; 
+}
+
+.card { 
+    background: white; 
+    padding: 2rem; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+
+.form-group { 
+    margin-bottom: 1.5rem; 
+}
+
+label { 
+    display: block; 
+    margin-bottom: 0.5rem; 
+    font-weight: bold; 
+    color: #2c3e50; 
+}
+
+input, select, textarea { 
+    width: 100%; 
+    padding: 0.75rem; 
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+    font-size: 1rem; 
+}
+
+textarea { 
+    min-height: 120px; 
+    resize: vertical; 
+}
+
+.btn { 
+    background: #3498db; 
+    color: white; 
+    border: none; 
+    padding: 0.75rem 1.5rem; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 1rem; 
+}
+
+.btn:hover { 
+    background: #2980b9; 
+}
+
+.btn-success { 
+    background: #27ae60; 
+}
+
+.btn-success:hover { 
+    background: #219a52; 
+}
+
+.btn-secondary { 
+    background: #95a5a6; 
+}
+
+.btn-secondary:hover { 
+    background: #7f8c8d; 
+}
+
+.form-section { 
+    border: 1px solid #e0e0e0; 
+    border-radius: 8px; 
+    padding: 1.5rem; 
+    margin-bottom: 1.5rem; 
+}
+
+.form-section h3 { 
+    margin-bottom: 1rem; 
+    color: #2c3e50; 
+    border-bottom: 2px solid #3498db; 
+    padding-bottom: 0.5rem; 
+}
+
+.problem-item { 
+    background: #f8f9fa; 
+    padding: 1rem; 
+    border-radius: 4px; 
+    margin-bottom: 0.5rem; 
+    border: 1px solid #e0e0e0; 
+}
+
+.problem-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 0.5rem; 
+}
+
+.problem-actions { 
+    display: flex; 
+    gap: 0.5rem; 
+}
+
+.modal { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+}
+
+.modal-content { 
+    background: white; 
+    padding: 2rem; 
+    border-radius: 8px; 
+    width: 90%; 
+    max-width: 800px; 
+    max-height: 80vh; 
+    overflow-y: auto; 
+}
+
+.problem-list { 
+    max-height: 400px; 
+    overflow-y: auto; 
+    margin: 1rem 0; 
+}
+
+.problem-option { 
+    padding: 0.75rem; 
+    border: 1px solid #ddd; 
+    border-radius: 4px; 
+    margin-bottom: 0.5rem; 
+    cursor: pointer; 
+}
+
+.problem-option:hover { 
+    background: #f8f9fa; 
+}
+
+.problem-option.selected { 
+    background: #e3f2fd; 
+    border-color: #3498db; 
+}
+
+.search-box { 
+    margin-bottom: 1rem; 
+}
+
+.empty-state { 
+    text-align: center; 
+    padding: 2rem; 
+    color: #666; 
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin: 1rem 0; 
+}
+
+th, td { 
+    padding: 0.75rem; 
+    text-align: left; 
+    border-bottom: 1px solid #ddd; 
+}
+
+th { 
+    background: #f8f9fa; 
+    font-weight: bold; 
+}
+
+.page-title {
+    margin-bottom: 1.5rem; 
+    color: #2c3e50; 
+}
+
+.form-actions {
+    text-align: center; 
+    margin-top: 2rem; 
+}
+
+.form-actions .btn {
+    padding: 1rem 2rem; 
+}
+
+.form-actions .btn-secondary {
+    margin-left: 1rem; 
+}
+
+.problem-checkbox {
+    width: auto; 
+}
+
+.problem-info {
+    flex: 1; 
+}
+
+.problem-title {
+    font-weight: bold; 
+}
+
+.problem-meta {
+    font-size: 0.875rem; 
+    color: #666; 
+}
+
+.selection-count {
+    margin-left: 1rem; 
+    color: #666; 
+}
+
+.modal-actions {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 1rem; 
+}
+
+.index-input {
+    width: 40px; 
+    text-align: center; 
+    padding: 0.25rem; 
+    border: 1px solid #ddd; 
+    border-radius: 2px; 
+}
+
+.small-btn {
+    padding: 0.25rem 0.5rem; 
+    font-size: 0.875rem; 
+}
