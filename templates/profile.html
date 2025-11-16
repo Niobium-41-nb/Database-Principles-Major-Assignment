@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>个人资料 - 在线判题系统</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -22,13 +22,13 @@
     </nav>
 
     <div class="container">
-        <div id="login-prompt" class="card hidden">
+        <div id="login-prompt" class="card" style="display: none;">
             <h2>请先登录</h2>
             <p>您需要登录后才能查看和修改个人资料。</p>
-            <button onclick="location.href='/'" class="btn">返回首页</button>
+            <button onclick="location.href='/login'" class="btn">前往登录</button>
         </div>
 
-        <div id="profile-content" class="hidden">
+        <div id="profile-content" style="display: none;">
             <div class="card">
                 <div class="profile-header">
                     <div class="avatar" id="user-avatar">U</div>
@@ -73,6 +73,7 @@
                             <div class="form-group">
                                 <label class="form-label">头像URL</label>
                                 <input type="text" id="avatar" class="form-input" placeholder="请输入头像图片的URL">
+                                <small style="color: #666; font-size: 0.875rem;">请输入有效的图片URL地址</small>
                             </div>
                             <button type="submit" class="btn">保存更改</button>
                         </form>
@@ -86,15 +87,15 @@
                         <form id="password-form">
                             <div class="form-group">
                                 <label class="form-label">原密码</label>
-                                <input type="password" id="old-password" class="form-input" placeholder="请输入原密码">
+                                <input type="password" id="old-password" class="form-input" placeholder="请输入原密码" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">新密码</label>
-                                <input type="password" id="new-password" class="form-input" placeholder="请输入新密码">
+                                <input type="password" id="new-password" class="form-input" placeholder="请输入新密码" required minlength="6">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">确认新密码</label>
-                                <input type="password" id="confirm-password" class="form-input" placeholder="请再次输入新密码">
+                                <input type="password" id="confirm-password" class="form-input" placeholder="请再次输入新密码" required minlength="6">
                             </div>
                             <button type="submit" class="btn">修改密码</button>
                         </form>
@@ -104,7 +105,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
     <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </body>
 </html>
