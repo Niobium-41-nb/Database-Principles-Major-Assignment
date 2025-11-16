@@ -4,267 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>题目详情 - 在线评测系统</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/../static/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/problem_detail.css') }}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="fas fa-code me-2"></i>Online Judge
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-link" href="/"><i class="fas fa-home me-1"></i>首页</a>
-                    <a class="nav-link active" href="/problems"><i class="fas fa-list me-1"></i>题目列表</a>
-                    <a class="nav-link" href="/contests"><i class="fas fa-trophy me-1"></i>比赛</a>
-                    <a class="nav-link" href="/submissions"><i class="fas fa-history me-1"></i>提交记录</a>
-                    <a class="nav-link" href="/profile"><i class="fas fa-user me-1"></i>个人资料</a>
-                </div>
+            <a class="navbar-brand" href="/">Online Judge</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">首页</a>
+                <a class="nav-link" href="/problems">题目列表</a>
+                <a class="nav-link" href="/contests">比赛</a>
+                <a class="nav-link" href="/submissions">提交记录</a>
+                <a class="nav-link" href="/profile">个人资料</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4" id="problem-container">
         <!-- 加载中状态 -->
-        <div class="loading text-center py-5" id="loading">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <div class="loading" id="loading">
+            <div class="spinner-border" role="status">
                 <span class="visually-hidden">加载中...</span>
             </div>
-            <p class="mt-3 fs-5 text-muted">正在加载题目详情...</p>
+            <p class="mt-2">正在加载题目详情...</p>
         </div>
 
         <!-- 题目内容（动态加载） -->
-        <div id="problem-content" class="d-none">
+        <div id="problem-content" class="hidden-element">
             <!-- 题目头部信息 -->
-            <div class="problem-header shadow-sm">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <h1 id="problem-title" class="text-primary mb-2">题目标题</h1>
-                        <div class="problem-meta mb-3">
-                            <span class="badge fs-6 px-3 py-2" id="difficulty-badge">难度</span>
-                            <span class="meta-item"><i class="fas fa-clock me-1"></i>时间限制: <span id="time-limit">0</span>ms</span>
-                            <span class="meta-item"><i class="fas fa-memory me-1"></i>内存限制: <span id="memory-limit">0</span>MB</span>
-                            <span class="meta-item"><i class="fas fa-check-circle me-1"></i>通过: <span id="accepted-count">0</span></span>
-                            <span class="meta-item"><i class="fas fa-paper-plane me-1"></i>提交: <span id="submission-count">0</span></span>
-                            <span class="meta-item"><i class="fas fa-chart-line me-1"></i>通过率: <span id="acceptance-rate">0%</span></span>
-                        </div>
-                        <div class="tags" id="tags-container">
-                            <!-- 标签动态加载 -->
-                        </div>
+            <div class="problem-header">
+                <h1 id="problem-title">题目标题</h1>
+                <div class="problem-meta">
+                    <span class="badge" id="difficulty-badge">难度</span>
+                    <span>时间限制: <span id="time-limit">0</span>ms</span>
+                    <span>内存限制: <span id="memory-limit">0</span>KB</span>
+                    <span>通过: <span id="accepted-count">0</span></span>
+                    <span>提交: <span id="submission-count">0</span></span>
+                </div>
+                <div class="tags mt-2" id="tags-container">
+                    <!-- 标签动态加载 -->
+                </div>
+            </div>
+
+            <!-- 题目内容 -->
+            <div class="problem-content">
+                <!-- 题目描述 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">题目描述</h5>
                     </div>
-                    <div class="problem-actions">
-                        <button class="btn btn-outline-primary" id="favorite-btn">
-                            <i class="far fa-star me-1"></i>收藏
-                        </button>
-                        <button class="btn btn-outline-secondary" id="share-btn">
-                            <i class="fas fa-share-alt me-1"></i>分享
-                        </button>
+                    <div class="card-body">
+                        <div id="statement">题目描述加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 输入格式 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">输入格式</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="input-spec">输入格式加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 输出格式 -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">输出格式</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="output-spec">输出格式加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 样例 -->
+                <div class="card mb-3 hidden-element" id="samples-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">样例</h5>
+                    </div>
+                    <div class="card-body" id="samples-container">
+                        <!-- 样例动态加载 -->
                     </div>
                 </div>
             </div>
 
-            <!-- 题目内容区域 -->
-            <div class="row mt-4">
-                <!-- 左侧题目内容 -->
-                <div class="col-lg-8">
-                    <div class="problem-content">
-                        <!-- 题目描述 -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0 text-primary"><i class="fas fa-file-alt me-2"></i>题目描述</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="statement" class="problem-text">题目描述加载中...</div>
-                            </div>
-                        </div>
-
-                        <!-- 输入格式 -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0 text-primary"><i class="fas fa-sign-in-alt me-2"></i>输入格式</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="input-spec" class="problem-text">输入格式加载中...</div>
-                            </div>
-                        </div>
-
-                        <!-- 输出格式 -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0 text-primary"><i class="fas fa-sign-out-alt me-2"></i>输出格式</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="output-spec" class="problem-text">输出格式加载中...</div>
-                            </div>
-                        </div>
-
-                        <!-- 样例 -->
-                        <div class="card mb-4 shadow-sm d-none" id="samples-card">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0 text-primary"><i class="fas fa-code me-2"></i>样例</h5>
-                            </div>
-                            <div class="card-body" id="samples-container">
-                                <!-- 样例动态加载 -->
-                            </div>
-                        </div>
-
-                        <!-- 提示 -->
-                        <div class="card mb-4 shadow-sm d-none" id="hints-card">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0 text-primary"><i class="fas fa-lightbulb me-2"></i>提示</h5>
-                            </div>
-                            <div class="card-body">
-                                <div id="hints" class="problem-text"></div>
-                            </div>
-                        </div>
-                    </div>
+            <!-- 提交区域 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">提交代码</h5>
                 </div>
-
-                <!-- 右侧提交区域 -->
-                <div class="col-lg-4">
-                    <div class="sticky-top" style="top: 20px;">
-                        <!-- 提交区域 -->
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="fas fa-paper-plane me-2"></i>提交代码</h5>
-                            </div>
-                            <div class="card-body">
-                                <form id="submit-form">
-                                    <div class="mb-3">
-                                        <label for="language" class="form-label fw-bold">编程语言</label>
-                                        <select class="form-select" id="language" name="language">
-                                            <optgroup label="C/C++">
-                                                <option value="C">C</option>
-                                                <option value="C++" selected>C++</option>
-                                                <option value="GNU C11">GNU C11</option>
-                                                <option value="GNU C++11">GNU C++11</option>
-                                                <option value="GNU C++14">GNU C++14</option>
-                                                <option value="GNU C++17">GNU C++17</option>
-                                                <option value="GNU C++20">GNU C++20</option>
-                                                <option value="Clang">Clang</option>
-                                                <option value="Clang++">Clang++</option>
-                                                <option value="MS C++">MS C++</option>
-                                            </optgroup>
-                                            <optgroup label="Java">
-                                                <option value="Java">Java</option>
-                                                <option value="Java 8">Java 8</option>
-                                                <option value="Java 11">Java 11</option>
-                                                <option value="Java 17">Java 17</option>
-                                            </optgroup>
-                                            <optgroup label="Python">
-                                                <option value="Python">Python</option>
-                                                <option value="Python 2">Python 2</option>
-                                                <option value="Python 3">Python 3</option>
-                                                <option value="PyPy 2">PyPy 2</option>
-                                                <option value="PyPy 3">PyPy 3</option>
-                                                <option value="PyPy 3-64">PyPy 3-64</option>
-                                            </optgroup>
-                                            <optgroup label="其他语言">
-                                                <option value="JavaScript">JavaScript</option>
-                                                <option value="TypeScript">TypeScript</option>
-                                                <option value="Go">Go</option>
-                                                <option value="Rust">Rust</option>
-                                                <option value="Ruby">Ruby</option>
-                                                <option value="PHP">PHP</option>
-                                                <option value="C#">C#</option>
-                                                <option value="Kotlin">Kotlin</option>
-                                                <option value="Scala">Scala</option>
-                                                <option value="R">R</option>
-                                                <option value="Haskell">Haskell</option>
-                                                <option value="Pascal">Pascal</option>
-                                                <option value="Perl">Perl</option>
-                                                <option value="Brain fuck">Brain fuck</option>
-                                                <option value="Text">Text</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="source-code" class="form-label fw-bold">源代码</label>
-                                        <div class="position-relative">
-                                            <textarea class="form-control source-code-textarea" id="source-code" name="source_code" rows="12" 
-                                                      placeholder="请在此处编写你的代码..."></textarea>
-                                            <div class="position-absolute top-0 end-0 mt-2 me-2">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary" id="format-code">
-                                                    <i class="fas fa-indent"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="form-text">
-                                            <small>支持代码高亮和基本格式化</small>
-                                        </div>
-                                    </div>
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary btn-lg">
-                                            <i class="fas fa-paper-plane me-2"></i>提交代码
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                <div class="card-body">
+                    <form id="submit-form">
+                        <div class="mb-3">
+                            <label for="language" class="form-label">编程语言</label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="C++">C++</option>
+                                <option value="Java">Java</option>
+                                <option value="Python">Python</option>
+                                <option value="C">C</option>
+                                <option value="R">R</option>
+                                <option value="Brain fuck">Brain fuck</option>
+                                <option value="C#">C#</option>
+                                <option value="D">D</option>
+                                <option value="Go">Go</option>
+                                <option value="Haskell">Haskell</option>
+                                <option value="Kotlin">Kotlin</option>
+                                <option value="OCaml">OCaml</option>
+                                <option value="Pascal">Pascal</option>
+                                <option value="Perl">Perl</option>
+                                <option value="PHP">PHP</option>
+                                <option value="Ruby">Ruby</option>
+                                <option value="Rust">Rust</option>
+                                <option value="Scala">Scala</option>
+                                <option value="JavaScript">JavaScript</option>
+                                <option value="Node.js">Node.js</option>
+                                <option value="TypeScript">TypeScript</option>
+                                <option value="F#">F#</option>
+                                <option value="Clang">Clang</option>
+                                <option value="Clang++">Clang++</option>
+                                <option value="GNU C++11">GNU C++11</option>
+                                <option value="GNU C++14">GNU C++14</option>
+                                <option value="GNU C++17">GNU C++17</option>
+                                <option value="GNU C++20">GNU C++20</option>
+                                <option value="MS C++">MS C++</option>
+                                <option value="MS C#">MS C#</option>
+                                <option value="GNU C11">GNU C11</option>
+                                <option value="Python 2">Python 2</option>
+                                <option value="Python 3">Python 3</option>
+                                <option value="PyPy 2">PyPy 2</option>
+                                <option value="PyPy 3">PyPy 3</option>
+                                <option value="PyPy 3-64">PyPy 3-64</option>
+                                <option value="Java 8">Java 8</option>
+                                <option value="Java 11">Java 11</option>
+                                <option value="Java 17">Java 17</option>
+                                <option value="Text">Text</option>
+                            </select>
                         </div>
-
-                        <!-- 快速导航 -->
-                        <div class="card mt-4 shadow-sm">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0"><i class="fas fa-link me-2"></i>快速导航</h6>
-                            </div>
-                            <div class="card-body p-2">
-                                <div class="d-grid gap-2">
-                                    <a href="#statement" class="btn btn-outline-primary btn-sm text-start">
-                                        <i class="fas fa-file-alt me-1"></i>题目描述
-                                    </a>
-                                    <a href="#input-spec" class="btn btn-outline-primary btn-sm text-start">
-                                        <i class="fas fa-sign-in-alt me-1"></i>输入格式
-                                    </a>
-                                    <a href="#output-spec" class="btn btn-outline-primary btn-sm text-start">
-                                        <i class="fas fa-sign-out-alt me-1"></i>输出格式
-                                    </a>
-                                    <a href="#samples-container" class="btn btn-outline-primary btn-sm text-start">
-                                        <i class="fas fa-code me-1"></i>样例
-                                    </a>
-                                </div>
-                            </div>
+                        <div class="mb-3">
+                            <label for="source-code" class="form-label">源代码</label>
+                            <textarea class="form-control source-code-textarea" id="source-code" name="source_code" rows="15"
+                                      placeholder="请在此处编写你的代码..."></textarea>
                         </div>
-                    </div>
+                        <button type="submit" class="btn btn-primary submit-btn">提交</button>
+                    </form>
                 </div>
             </div>
         </div>
 
         <!-- 错误信息 -->
-        <div class="alert alert-danger d-none shadow-sm" id="error-message">
-            <div class="d-flex">
-                <div class="flex-grow-1">
-                    <h4><i class="fas fa-exclamation-triangle me-2"></i>加载失败</h4>
-                    <p id="error-text" class="mb-2">加载题目详情时出现错误，请稍后重试。</p>
-                </div>
-                <div>
-                    <a href="/problems" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>返回题目列表
-                    </a>
-                </div>
-            </div>
+        <div class="alert alert-danger hidden-element" id="error-message">
+            <h4>加载失败</h4>
+            <p id="error-text"></p>
+            <a href="/problems" class="btn btn-secondary">返回题目列表</a>
         </div>
     </div>
-
-    <!-- 页脚 -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5><i class="fas fa-code me-2"></i>Online Judge</h5>
-                    <p class="mb-0">专业的在线编程评测平台，助力算法学习和编程竞赛</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-0">&copy; 2023 Online Judge. 保留所有权利。</p>
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
