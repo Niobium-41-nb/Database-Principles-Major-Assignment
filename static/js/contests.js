@@ -1,3 +1,5 @@
+// static/js/contests.js - 比赛页面专用功能
+
 let contests = [];
 let currentPage = 1;
 const pageSize = 20;
@@ -214,15 +216,15 @@ async function createContest(contestData) {
         const result = await response.json();
 
         if (result.success) {
-            alert('比赛创建成功！');
+            showMessage('比赛创建成功！', 'success');
             hideCreateContestModal();
             loadContests(); // 刷新列表
         } else {
-            alert('创建比赛失败: ' + result.message);
+            showMessage('创建比赛失败: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('创建比赛失败:', error);
-        alert('创建比赛失败，请检查网络连接');
+        showMessage('创建比赛失败，请检查网络连接', 'error');
     }
 }
 
@@ -248,14 +250,14 @@ async function refreshContestsFromAPI() {
         const result = await response.json();
 
         if (result.success) {
-            alert('比赛数据刷新成功！');
+            showMessage('比赛数据刷新成功！', 'success');
             loadContests(); // 刷新列表
         } else {
-            alert('刷新比赛数据失败: ' + result.message);
+            showMessage('刷新比赛数据失败: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('刷新比赛数据失败:', error);
-        alert('刷新比赛数据失败，请检查网络连接');
+        showMessage('刷新比赛数据失败，请检查网络连接', 'error');
     }
 }
 

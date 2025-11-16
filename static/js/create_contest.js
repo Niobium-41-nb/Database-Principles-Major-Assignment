@@ -1,3 +1,5 @@
+// create_contest.js - 创建比赛页面专用JavaScript
+
 let selectedProblems = [];
 let availableProblems = [];
 
@@ -25,17 +27,16 @@ function showProblemSelectionModal() {
         <div class="modal-content">
             <h3>选择题目</h3>
             <div class="search-box">
-                <input type="text" id="problem-search" placeholder="搜索题目名称或ID..."
-                       style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                <input type="text" id="problem-search" placeholder="搜索题目名称或ID..." class="auth-input">
             </div>
             <div class="problem-list" id="problem-selection-list">
                 <!-- 题目列表将通过JavaScript动态加载 -->
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+            <div class="modal-actions">
                 <span id="selected-problems-count">已选择 0 个题目</span>
                 <div>
                     <button id="confirm-selection" class="btn btn-success">确认选择</button>
-                    <button id="cancel-selection" class="btn btn-secondary" style="margin-left: 0.5rem;">取消</button>
+                    <button id="cancel-selection" class="btn btn-secondary">取消</button>
                 </div>
             </div>
         </div>
@@ -76,13 +77,13 @@ function displayProblemSelectionList(filteredProblems = null) {
         const problemDiv = document.createElement('div');
         problemDiv.className = `problem-option ${isSelected ? 'selected' : ''}`;
         problemDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="problem-header">
                 <input type="checkbox" ${isSelected ? 'checked' : ''}
                        onchange="toggleProblemSelection('${problem.problem_id}', this.checked)"
-                       style="width: auto;">
-                <div style="flex: 1;">
-                    <div style="font-weight: bold;">${problem.problem_id} - ${problem.title}</div>
-                    <div style="font-size: 0.875rem; color: #666;">
+                       class="problem-checkbox">
+                <div class="problem-info">
+                    <div class="problem-title">${problem.problem_id} - ${problem.title}</div>
+                    <div class="problem-meta">
                         难度: ${problem.difficulty} | 时间限制: ${problem.time_limit}ms | 内存限制: ${Math.floor(problem.memory_limit / 1024)}MB
                     </div>
                 </div>
@@ -166,14 +167,14 @@ function updateSelectedProblemsDisplay() {
                         <td>
                             <input type="text" value="${problem.index}"
                                    onchange="updateProblemIndex('${problem.problem_id}', this.value)"
-                                   style="width: 40px; text-align: center; padding: 0.25rem; border: 1px solid #ddd; border-radius: 2px;">
+                                   class="index-input">
                         </td>
                         <td>${problem.problem_id}</td>
                         <td>${problem.title}</td>
                         <td>${problem.difficulty}</td>
                         <td>
                             <button type="button" onclick="removeSelectedProblem('${problem.problem_id}')"
-                                    class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                                    class="btn btn-secondary small-btn">
                                 移除
                             </button>
                         </td>

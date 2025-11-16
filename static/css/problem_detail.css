@@ -1,6 +1,49 @@
-.problem-header { background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-.tag { display: inline-block; background: #e9ecef; padding: 2px 8px; margin: 2px; border-radius: 3px; font-size: 0.9em; }
-.sample-test { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
-.code-block { background: #f1f3f4; padding: 10px; border-radius: 3px; font-family: monospace; white-space: pre-wrap; }
-.submit-btn { margin-top: 20px; }
-.loading { text-align: center; padding: 50px; }
+/* problem_detail.css - 题目详情页面专用样式 */
+
+.problem-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.tag {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 2px 8px;
+    margin: 2px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.sample-test {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.code-block {
+    background: #f1f3f4;
+    padding: 10px;
+    border-radius: 3px;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+.submit-btn {
+    margin-top: 20px;
+}
+
+.loading {
+    text-align: center;
+    padding: 50px;
+}
+
+.source-code-textarea {
+    font-family: 'Courier New', monospace;
+}
+
+.hidden-element {
+    display: none;
+}

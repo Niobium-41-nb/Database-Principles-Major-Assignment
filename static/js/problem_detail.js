@@ -1,16 +1,15 @@
+// problem_detail.js - 题目详情页面专用JavaScript
+
 // 页面加载时获取题目数据
 document.addEventListener('DOMContentLoaded', function() {
     const problemId = window.location.pathname.split('/').pop();
     loadProblemDetail(problemId);
 
     // 提交表单处理
-    const submitForm = document.getElementById('submit-form');
-    if (submitForm) {
-        submitForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitSolution(problemId);
-        });
-    }
+    document.getElementById('submit-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitSolution(problemId);
+    });
 });
 
 function loadProblemDetail(problemId) {
@@ -99,11 +98,9 @@ function displayProblem(problem) {
         });
 
         // 渲染代码高亮
-        if (typeof hljs !== 'undefined') {
-            document.querySelectorAll('.code-block').forEach(block => {
-                hljs.highlightElement(block);
-            });
-        }
+        document.querySelectorAll('.code-block').forEach(block => {
+            hljs.highlightElement(block);
+        });
     } else {
         samplesCard.style.display = 'none';
     }

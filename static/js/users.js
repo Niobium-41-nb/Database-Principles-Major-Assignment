@@ -1,3 +1,5 @@
+// static/js/users.js - 用户页面专用功能
+
 let allUsers = [];
 let currentUser = null;
 let isCurrentUserAdmin = false;
@@ -41,10 +43,10 @@ async function loadUsers() {
             allUsers = result.users;
             displayUsers(allUsers);
         } else {
-            alert('加载用户列表失败: ' + result.message);
+            showMessage('加载用户列表失败: ' + result.message, 'error');
         }
     } catch (error) {
-        alert('加载用户列表时发生错误: ' + error.message);
+        showMessage('加载用户列表时发生错误: ' + error.message, 'error');
     }
 }
 
@@ -207,14 +209,14 @@ async function setAdmin(userId, isAdmin) {
 
         const result = await response.json();
         if (result.success) {
-            alert(result.message);
+            showMessage(result.message, 'success');
             // 重新加载用户列表
             await loadUsers();
         } else {
-            alert('操作失败: ' + result.message);
+            showMessage('操作失败: ' + result.message, 'error');
         }
     } catch (error) {
-        alert('操作失败: ' + error.message);
+        showMessage('操作失败: ' + error.message, 'error');
     }
 }
 

@@ -1,3 +1,5 @@
+// static/js/profile.js - 个人资料页面专用功能
+
 let currentUser = null;
 
 function getRatingClass(rating) {

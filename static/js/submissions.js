@@ -1,3 +1,6 @@
+// static/js/submissions.js - 提交记录页面专用功能
+
+// 获取判决结果的CSS类名
 function getVerdictClass(verdict) {
     switch(verdict) {
         case 'Accepted':
@@ -19,6 +22,7 @@ function getVerdictClass(verdict) {
     }
 }
 
+// 加载提交记录
 async function loadSubmissions() {
     try {
         const userFilter = document.getElementById('user-filter').value;
@@ -50,30 +54,30 @@ async function loadSubmissions() {
                 return;
             }
             
-                result.submissions.forEach(submission => {
-                    const verdictClass = getVerdictClass(submission.verdict);
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${submission.submission_id}</td>
-                        <td>${submission.handle}</td>
-                        <td>${submission.problem_title}</td>
-                        <td>${submission.language}</td>
-                        <td class="${verdictClass}">${submission.verdict}</td>
-                        <td>${submission.time_consumed}ms</td>
-                        <td>${Math.floor(submission.memory_consumed / 1024)}MB</td>
-                        <td>${submission.passed_tests || 0}</td>
-                        <td>${submission.submission_time}</td>
-                        <td>
-                            <a href="/submission/${submission.submission_id}" class="btn">详情</a>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
+            result.submissions.forEach(submission => {
+                const verdictClass = getVerdictClass(submission.verdict);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${submission.submission_id}</td>
+                    <td>${submission.handle}</td>
+                    <td>${submission.problem_title}</td>
+                    <td>${submission.language}</td>
+                    <td class="${verdictClass}">${submission.verdict}</td>
+                    <td>${submission.time_consumed}ms</td>
+                    <td>${Math.floor(submission.memory_consumed / 1024)}MB</td>
+                    <td>${submission.passed_tests || 0}</td>
+                    <td>${submission.submission_time}</td>
+                    <td>
+                        <a href="/submission/${submission.submission_id}" class="btn">详情</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
         } else {
-            alert('加载提交记录失败: ' + result.message);
+            showMessage('加载提交记录失败: ' + result.message, 'error');
         }
     } catch (error) {
-        alert('加载提交记录时发生错误: ' + error.message);
+        showMessage('加载提交记录时发生错误: ' + error.message, 'error');
     }
 }
 
