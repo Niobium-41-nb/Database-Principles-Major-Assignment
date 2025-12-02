@@ -1,3 +1,4 @@
+<!-- submissions.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -5,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>提交记录 - 在线判题系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 添加判决结果的样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/submissions.css') }}">
 </head>
 <body>
     <nav class="navbar">
@@ -66,6 +69,7 @@
                             <th>内存</th>
                             <th>通过测试</th>
                             <th>提交时间</th>
+                            <th>操作</th> <!-- 添加这一行 -->
                         </tr>
                     </thead>
                     <tbody id="submissions-table-body">
