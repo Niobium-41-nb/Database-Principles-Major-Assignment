@@ -209,3 +209,8 @@ CREATE INDEX idx_hack_time ON HACK(hack_time);
 CREATE INDEX idx_hack_verdict ON HACK(verdict);
 CREATE INDEX idx_hack_submission ON HACK(submission_id);
 GO
+
+-- 创建管理员
+INSERT INTO Users (handle, email, password, name, is_admin) 
+VALUES ('admin', 'admin@eg.com', 'password', 'Administrator', 1);
+GO
