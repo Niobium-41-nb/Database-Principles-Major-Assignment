@@ -1,3 +1,13 @@
+"""
+用户管理路由模块
+
+该模块处理用户相关的API端点，包括：
+- 获取用户列表和详情
+- 用户个人信息管理
+- 密码修改和权限设置
+- 用户统计和排名查询
+"""
+
 from flask import Blueprint, request, jsonify, session
 from utils.database import get_db_connection
 

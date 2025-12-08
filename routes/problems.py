@@ -1,3 +1,13 @@
+"""
+题目管理路由模块
+
+该模块处理题目相关的API端点，包括：
+- 获取题目列表和详情
+- 题目统计信息查询
+- 创建新题目（管理员功能）
+- 题目标签和测试用例管理
+"""
+
 from flask import Blueprint, request, jsonify, session
 import json
 from utils.database import get_db_connection

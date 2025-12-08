@@ -1,3 +1,10 @@
+"""
+在线判题系统（OJ）主应用模块
+
+该模块定义了Flask应用实例，配置了蓝图注册和基础页面路由。
+提供了用户认证、题目管理、提交评测、比赛管理、用户管理和Hack功能。
+"""
+
 from flask import Flask, session
 import os
 from routes.auth import auth_bp

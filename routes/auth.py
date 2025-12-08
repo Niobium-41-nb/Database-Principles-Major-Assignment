@@ -1,3 +1,10 @@
+"""
+用户认证路由模块
+
+该模块处理用户注册、登录、登出等认证相关的API端点。
+使用SQL Server数据库存储用户信息，支持Windows身份验证。
+"""
+
 from flask import Blueprint, request, jsonify, session
 from utils.database import get_db_connection
 

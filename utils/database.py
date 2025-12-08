@@ -1,3 +1,10 @@
+"""
+数据库工具模块
+
+该模块提供数据库连接功能，使用Windows身份验证连接SQL Server数据库。
+包含获取数据库连接的函数，配置从config模块读取。
+"""
+
 import pyodbc
 import config
 

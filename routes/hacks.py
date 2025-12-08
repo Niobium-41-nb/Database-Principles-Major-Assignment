@@ -1,3 +1,13 @@
+"""
+Hack管理路由模块
+
+该模块处理Hack相关的API端点，包括：
+- 获取Hack记录列表
+- 获取特定Hack的详细提交信息
+- 提交新的Hack测试
+- Hack结果评判和Rating更新
+"""
+
 from flask import Blueprint, request, jsonify, session
 import json
 import random

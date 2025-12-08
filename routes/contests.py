@@ -1,3 +1,13 @@
+"""
+比赛管理路由模块
+
+该模块处理比赛相关的API端点，包括：
+- 获取比赛列表和详情
+- 获取比赛排名和题目列表
+- 创建比赛和用户报名
+- 比赛统计信息查询
+"""
+
 from flask import Blueprint, request, jsonify, session
 from datetime import timedelta
 from utils.database import get_db_connection

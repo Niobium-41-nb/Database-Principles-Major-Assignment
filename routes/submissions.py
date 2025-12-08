@@ -1,3 +1,13 @@
+"""
+提交管理路由模块
+
+该模块处理代码提交相关的API端点，包括：
+- 提交代码评测
+- 获取提交记录列表和详情
+- 提交结果查询和Hack关联
+- 提交统计和过滤功能
+"""
+
 from flask import Blueprint, request, jsonify, session, render_template
 import random
 from utils.database import get_db_connection
