@@ -11,7 +11,15 @@ document.getElementById('hackForm').onsubmit = function(e) {
     const hackInput = document.getElementById('hackInput').value;
     const hackOutput = document.getElementById('hackOutput').value;
 
-    fetch('/api/hack/{{ detail.submission_id }}', {
+    // 从表单的 data 属性中读取 submission id，避免在静态文件中使用模板变量
+    const submissionId = this.dataset.submissionId;
+    if (!submissionId) {
+        alert('无法识别提交 ID，操作取消');
+        closeHackDialog();
+        return;
+    }
+
+    fetch(`/api/hack/${submissionId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -27,7 +35,7 @@ document.getElementById('hackForm').onsubmit = function(e) {
             alert('Hack成功提交！');
             location.reload();
         } else {
-            alert('Hack提交失败：' + data.message);
+            alert('Hack提交失败：' + (data.message || '未知错误'));
         }
     })
     .catch(error => {

@@ -58,7 +58,7 @@
         <div class="hack-dialog-content">
             <h3>Hack此提交</h3>
             <p>请提供能够使这个提交失败的测试数据：</p>
-            <form id="hackForm" class="hack-form">
+                <form id="hackForm" class="hack-form" data-submission-id="{{ detail.submission_id }}">
                 <label>输入数据：</label>
                 <textarea id="hackInput" required></textarea>
                 <label>预期输出：</label>
