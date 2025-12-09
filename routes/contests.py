@@ -16,17 +16,48 @@ contests_bp = Blueprint('contests', __name__)
 
 @contests_bp.route('/api/contests')
 def get_contests():
-    """获取比赛列表"""
+    """获取比赛列表（支持筛选）"""
     try:
+        # 获取筛选参数
+        phase = request.args.get('phase', '')
+        contest_type = request.args.get('type', '')
+        difficulty = request.args.get('difficulty', '')
+        search = request.args.get('search', '')
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        cursor.execute("""
+        # 构建基础查询
+        query = """
             SELECT contest_id, name, type, phase, start_time, duration_seconds, 
                    difficulty, kind, icpc_region
             FROM CONTEST
-            ORDER BY start_time DESC
-        """)
+            WHERE 1=1
+        """
+        params = []
+        
+        # 添加筛选条件
+        if phase:
+            query += " AND phase = ?"
+            params.append(phase)
+        
+        if contest_type:
+            query += " AND type = ?"
+            params.append(contest_type)
+        
+        if difficulty:
+            query += " AND difficulty = ?"
+            params.append(difficulty)
+        
+        if search:
+            query += " AND name LIKE ?"
+            params.append(f"%{search}%")
+        
+        # 排序
+        query += " ORDER BY start_time DESC"
+        
+        # 执行查询
+        cursor.execute(query, params)
         
         contests = []
         for row in cursor.fetchall():

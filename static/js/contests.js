@@ -55,11 +55,18 @@ function formatDateTime(datetimeStr) {
 
 async function loadContests() {
     try {
-        const params = new URLSearchParams({
-            page: currentPage,
-            page_size: pageSize,
-            ...filters
-        });
+        // 构建查询参数
+        const params = new URLSearchParams();
+        
+        // 添加分页参数
+        params.append('page', currentPage);
+        params.append('page_size', pageSize);
+        
+        // 添加筛选参数（只有当有值时才添加）
+        if (filters.phase) params.append('phase', filters.phase);
+        if (filters.type) params.append('type', filters.type);
+        if (filters.difficulty) params.append('difficulty', filters.difficulty);
+        if (filters.search) params.append('search', filters.search);
 
         const response = await fetch(`/api/contests?${params}`);
         const result = await response.json();
@@ -67,7 +74,8 @@ async function loadContests() {
         if (result.success) {
             contests = result.contests;
             displayContests(contests);
-            setupPagination(result.total_count);
+            // 注意：后端API现在需要返回total_count用于分页
+            setupPagination(result.total_count || contests.length);
         } else {
             console.error('加载比赛列表失败:', result.message);
             displayContests([]);
