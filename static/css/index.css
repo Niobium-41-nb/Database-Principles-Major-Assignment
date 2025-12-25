@@ -1,5 +1,300 @@
 /* index.css - 首页专用样式 */
 
+/* 全局容器 */
+.main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 英雄区域样式 */
+.hero-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    margin: 40px 0 60px;
+    padding: 40px;
+    background: linear-gradient(135deg, #1a2530 0%, #2c3e50 100%);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.hero-title {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    color: #4fc3f7;
+    font-weight: 700;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #e0e0e0;
+    max-width: 600px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-placeholder {
+    width: 100%;
+    max-width: 400px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #4fc3f7;
+    font-size: 1.1rem;
+    border: 2px dashed rgba(79, 195, 247, 0.3);
+}
+
+.image-placeholder i {
+    font-size: 5rem;
+    margin-bottom: 20px;
+}
+
+/* 按钮样式 */
+.btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #4fc3f7;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #03a9f4;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(79, 195, 247, 0.4);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #4fc3f7;
+    border: 2px solid #4fc3f7;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(79, 195, 247, 0.1);
+    transform: translateY(-3px);
+}
+
+/* 功能特色区域 */
+.features-section {
+    margin: 60px 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.2rem;
+    color: #1a2530;
+    margin-bottom: 40px;
+    font-weight: 700;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    border-top: 4px solid #4fc3f7;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(79, 195, 247, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: #4fc3f7;
+    font-size: 1.8rem;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    color: #1a2530;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.feature-link {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: gap 0.3s ease;
+}
+
+.feature-link:hover {
+    gap: 12px;
+}
+
+/* 统计数据区域 */
+.stats-section {
+    margin: 60px 0;
+    padding: 50px 20px;
+    background: linear-gradient(135deg, #1a2530 0%, #2c3e50 100%);
+    border-radius: 15px;
+    color: white;
+}
+
+.stats-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.stats-section .section-title {
+    color: white;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 20px;
+}
+
+.stat-number {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #4fc3f7;
+    margin-bottom: 10px;
+}
+
+.stat-label {
+    font-size: 1.2rem;
+    color: #e0e0e0;
+}
+
+/* 快速开始指南 */
+.quickstart-section {
+    margin: 60px 0;
+}
+
+.quickstart-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px;
+}
+
+.step {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.step:hover {
+    transform: translateY(-5px);
+}
+
+.step-number {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 40px;
+    background: #4fc3f7;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.step h3 {
+    font-size: 1.4rem;
+    color: #1a2530;
+    margin: 20px 0 15px;
+}
+
+.step p {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.step-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #f0f8ff;
+    color: #4fc3f7;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.step-button:hover {
+    background: #4fc3f7;
+    color: white;
+    border-color: #4fc3f7;
+}
+
+/* 模态框样式 */
 .auth-modal {
     display: none;
     position: fixed;
@@ -7,26 +302,138 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.7);
     z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .auth-content {
     background: white;
-    width: 300px;
-    margin: 100px auto;
-    padding: 2rem;
-    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.auth-content h3 {
+    color: #1a2530;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 1.8rem;
 }
 
 .auth-input {
     width: 100%;
-    margin: 0.5rem 0;
-    padding: 0.5rem;
+    margin: 12px 0;
+    padding: 14px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border 0.3s;
 }
 
+.auth-input:focus {
+    outline: none;
+    border-color: #4fc3f7;
+    box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+}
+
+.btn-auth {
+    width: 100%;
+    padding: 14px;
+    background-color: #4fc3f7;
+    color: white;
+    margin-top: 15px;
+}
+
+.btn-auth:hover {
+    background-color: #03a9f4;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.auth-switch a {
+    color: #4fc3f7;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
+    .hero-section {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px;
+    }
+    
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: 15px;
+    }
+    
+    .hero-section {
+        margin: 20px 0 40px;
+        padding: 25px;
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .hero-description {
+        font-size: 1.1rem;
+    }
+    
+    .features-grid, .stats-grid, .quickstart-steps {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .stat-number {
+        font-size: 2.8rem;
+    }
+    
+    .feature-card, .step {
+        padding: 25px;
+    }
+}
+
+/* 保留原有的模态框样式（确保与现有样式兼容） */
 .user-info {
     display: none;
     align-items: center;

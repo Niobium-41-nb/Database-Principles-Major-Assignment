@@ -6,6 +6,7 @@
     <title>在线判题系统</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -32,12 +33,124 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="card">
-            <h2>欢迎来到在线判题系统</h2>
-            <p>这是一个模仿 Codeforces 的在线编程评测平台</p>
-        </div>
-    </div>
+    <!-- 主要内容区域 -->
+    <main class="main-container">
+        <!-- 英雄区域 -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h2 class="hero-title">提升编程技能，迎接挑战</h2>
+                <p class="hero-description">一个模仿 Codeforces 的在线编程评测平台，提供海量算法题目、实时比赛和即时判题系统，帮助您从新手成长为算法大师。</p>
+                <div class="hero-buttons">
+                    <a href="/problems" class="btn btn-primary">开始刷题 <i class="fas fa-arrow-right"></i></a>
+                    <a href="/contests" class="btn btn-secondary">参加比赛</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="image-placeholder">
+                    <i class="fas fa-laptop-code"></i>
+                    <span>在线判题系统界面</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能特色区域 -->
+        <section class="features-section">
+            <h2 class="section-title">核心功能特色</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>海量题库</h3>
+                    <p>涵盖各类算法和数据结构的题目，从简单到困难，满足不同水平编程爱好者的需求。</p>
+                    <a href="/problems" class="feature-link">浏览题目 <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>实时比赛</h3>
+                    <p>参加定期举办的编程竞赛，与全球的程序员同台竞技，提升解决实际问题的能力。</p>
+                    <a href="/contests" class="feature-link">查看比赛 <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>数据统计</h3>
+                    <p>详细的个人数据统计和分析，帮助您了解自己的强项和弱点，制定有效的学习计划。</p>
+                    <a href="/profile" class="feature-link">查看统计 <i class="fas fa-arrow-right"></i></a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>即时判题</h3>
+                    <p>提交代码后立即得到评测结果，支持多种编程语言，提供详细的运行时间和内存使用情况。</p>
+                    <a href="/submissions" class="feature-link">提交记录 <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 统计数据区域 -->
+        <section class="stats-section">
+            <div class="stats-container">
+                <h2 class="section-title">平台数据概览</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="1500">0</div>
+                        <div class="stat-label">编程题目</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="25000">0</div>
+                        <div class="stat-label">注册用户</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="500000">0</div>
+                        <div class="stat-label">提交记录</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="200">0</div>
+                        <div class="stat-label">举办比赛</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 快速开始指南 -->
+        <section class="quickstart-section">
+            <h2 class="section-title">快速开始指南</h2>
+            <div class="quickstart-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>注册账号</h3>
+                    <p>创建一个免费账户，开始您的编程之旅</p>
+                    <button onclick="showRegister()" class="step-button">立即注册</button>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>选择题目</h3>
+                    <p>浏览题库，从简单题目开始逐步提升难度</p>
+                    <a href="/problems" class="step-button">查看题目</a>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>提交代码</h3>
+                    <p>编写解决方案并提交，即时获得评测结果</p>
+                    <a href="/submissions" class="step-button">提交记录</a>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>参加比赛</h3>
+                    <p>参加编程竞赛，与其他选手一较高下</p>
+                    <a href="/contests" class="step-button">查看比赛</a>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <!-- 登录模态框 -->
     <div id="login-modal" class="auth-modal">
@@ -45,8 +158,9 @@
             <h3>登录</h3>
             <input type="text" id="login-handle" placeholder="用户名" class="auth-input">
             <input type="password" id="login-password" placeholder="密码" class="auth-input">
-            <button onclick="login()" class="btn">登录</button>
+            <button onclick="login()" class="btn btn-auth">登录</button>
             <button onclick="hideLogin()" class="btn btn-secondary">取消</button>
+            <p class="auth-switch">还没有账号？<a href="javascript:void(0)" onclick="switchToRegister()">立即注册</a></p>
         </div>
     </div>
 
@@ -58,11 +172,130 @@
             <input type="email" id="register-email" placeholder="邮箱" class="auth-input">
             <input type="password" id="register-password" placeholder="密码" class="auth-input">
             <input type="text" id="register-name" placeholder="姓名（可选）" class="auth-input">
-            <button onclick="register()" class="btn">注册</button>
+            <button onclick="register()" class="btn btn-auth">注册</button>
             <button onclick="hideRegister()" class="btn btn-secondary">取消</button>
+            <p class="auth-switch">已有账号？<a href="javascript:void(0)" onclick="switchToLogin()">立即登录</a></p>
         </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script>
+        // 统计数据动画
+        function animateStats() {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            
+            statNumbers.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-count'));
+                const increment = target / 100;
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    stat.textContent = Math.floor(current).toLocaleString() + '+';
+                }, 20);
+            });
+        }
+        
+        // 当用户滚动到统计数据区域时触发动画
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateStats();
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        // 观察统计数据区域
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+        
+        // 模态框切换功能
+        function switchToRegister() {
+            hideLogin();
+            setTimeout(() => showRegister(), 300);
+        }
+        
+        function switchToLogin() {
+            hideRegister();
+            setTimeout(() => showLogin(), 300);
+        }
+        
+        // 从common.js中提取必要的函数（如果不存在）
+        if (typeof showLogin === 'undefined') {
+            function showLogin() {
+                document.getElementById('login-modal').style.display = 'flex';
+            }
+            
+            function hideLogin() {
+                document.getElementById('login-modal').style.display = 'none';
+            }
+            
+            function showRegister() {
+                document.getElementById('register-modal').style.display = 'flex';
+            }
+            
+            function hideRegister() {
+                document.getElementById('register-modal').style.display = 'none';
+            }
+            
+            // 模拟登录/注册功能
+            function login() {
+                const handle = document.getElementById('login-handle').value;
+                const password = document.getElementById('login-password').value;
+                
+                if (!handle || !password) {
+                    alert('请输入用户名和密码');
+                    return;
+                }
+                
+                alert('登录功能演示 - 实际功能需要后端支持');
+                hideLogin();
+                document.getElementById('login-handle').value = '';
+                document.getElementById('login-password').value = '';
+            }
+            
+            function register() {
+                const handle = document.getElementById('register-handle').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                
+                if (!handle || !email || !password) {
+                    alert('请填写必填字段');
+                    return;
+                }
+                
+                alert('注册功能演示 - 实际功能需要后端支持');
+                hideRegister();
+                document.getElementById('register-handle').value = '';
+                document.getElementById('register-email').value = '';
+                document.getElementById('register-password').value = '';
+                document.getElementById('register-name').value = '';
+            }
+            
+            function logout() {
+                alert('登出功能演示 - 实际功能需要后端支持');
+            }
+            
+            // 点击模态框外部关闭
+            window.onclick = function(event) {
+                const loginModal = document.getElementById('login-modal');
+                const registerModal = document.getElementById('register-modal');
+                
+                if (event.target === loginModal) {
+                    hideLogin();
+                }
+                if (event.target === registerModal) {
+                    hideRegister();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
