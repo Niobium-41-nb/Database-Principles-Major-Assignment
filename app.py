@@ -107,4 +107,6 @@ def contest_standings_page(contest_id):
     return render_template('contest_standings.html', contest_id=contest_id)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # 使用HTTPS运行应用
+    ssl_context = ('cert.pem', 'key.pem')  # 证书和密钥文件
+    app.run(debug=True, host='0.0.0.0', port=8443, ssl_context=ssl_context)
